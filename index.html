@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPATISAN CALON LURAH ABRORI</title>
+    <!-- Tailwind CSS untuk Desain Profesional -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2canvas untuk Ekspor Foto Resolusi Tinggi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Firebase SDK (Compat Version untuk Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .print-container { box-shadow: none !important; border: none !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-p-2 sm:p-6">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden print-container border border-slate-200">
+        
+        <!-- Header Utama -->
+        <header class="bg-gradient-to-r from-emerald-700 to-teal-800 text-white p-6 text-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-wide uppercase">SIMPATISAN CALON LURAH ABRORI</h1>
+            <p class="text-emerald-100 text-sm mt-1">Pendataan Pendukung & Simpatisan Terpusat (RT. 01 s.d. RT. 09)</p>
+            <div id="connection-status" class="inline-block mt-2 px-3 py-1 bg-amber-500 text-xs font-semibold rounded-full text-white">Menghubungkan ke server...</div>
+        </header>
+
+        <!-- Navigasi Tab RT 01 - RT 09 -->
+        <nav class="bg-slate-200 p-2 flex flex-wrap justify-center gap-1.5 no-print border-b border-slate-300" id="rt-tabs">
+            <!-- Tombol Tab akan di-generate otomatis oleh JavaScript -->
+        </nav>
+
+        <!-- Konten Tabel Utama -->
+        <main class="p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3 no-print">
+                <div>
+                    <h2 id="current-rt-title" class="text-xl font-bold text-slate-700">RT. 01</h2>
+                    <p class="text-xs text-slate-500">Total Simpatisan Tercatat: <span id="total-count" class="font-bold text-emerald-700">0</span> orang</p>
+                </div>
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <button onclick="addRow()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Tambah 1 Baris
+                    </button>
+                    <button onclick="exportToImage()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Unduh Foto HD
+                    </button>
+                </div>
+            </div>
+
+            <!-- Area Tabel yang akan difoto/dicetak -->
+            <div id="print-area" class="bg-white p-2 rounded-xl">
+                <div class="text-center mb-4 hidden print-header">
+                    <h2 class="text-xl font-bold uppercase">DAFTAR SIMPATISAN CALON LURAH ABRORI</h2>
+                    <h3 id="print-rt-subtitle" class="text-lg font-semibold text-slate-700">RT. 01</h3>
+                    <hr class="my-2 border-slate-400">
+                </div>
+
+                <div class="overflow-x-auto border border-slate-300 rounded-lg shadow-sm">
+                    <table class="w-full border-collapse text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                                <th class="p-3 border-b border-slate-700 w-16 text-center">No</th>
+                                <th class="p-3 border-b border-slate-700">Nama Lengkap Simpatisan</th>
+                                <th class="p-3 border-b border-slate-700 w-20 text-center no-print">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-200 bg-white">
+                            <!-- Baris Data Dimuat Dinamis -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 text-xs text-slate-400 text-right hidden print-footer">
+                    Dicetak dari Sistem Pendataan Terpusat Pilkades Desa Pucung
+                </div>
+            </div>
+        </main>
+        
+        <footer class="bg-slate-50 border-t border-slate-200 p-4 text-center text-xs text-slate-500 no-print">
+            Sistem Sinkronisasi Online Real-time &bull; Aman & Terpercaya
+        </footer>
+    </div>
+
+    <!-- Script Aplikasi & Firebase Integration -->
+    <script>
+        // Konfigurasi Firebase Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyAKqlott215H3Iozn7AQgOzAveatV3GrbE",
+            authDomain: "pilkades-fed6d.firebaseapp.com",
+            databaseURL: "https://pilkades-fed6d-default-rtdb.firebaseio.com",
+            projectId: "pilkades-fed6d",
+            storageBucket: "pilkades-fed6d.appspot.com",
+            messagingSenderId: "915306843645",
+            appId: "1:915306843645:web:b31202bf549079a2624694",
+            measurementId: "G-DER4SQ7355"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Indikator Koneksi
+        const statusBadge = document.getElementById('connection-status');
+        db.ref('.info/connected').on('value', function(snap) {
+            if (snap.val() === true) {
+                statusBadge.textContent = "Online (Terhubung)";
+                statusBadge.className = "inline-block mt-2 px-3 py-1 bg-emerald-600 text-xs font-semibold rounded-full text-white";
+            } else {
+                statusBadge.textContent = "Offline (Menghubungkan...)";
+                statusBadge.className = "inline-block mt-2 px-3 py-1 bg-amber-500 text-xs font-semibold rounded-full text-white";
+            }
+        });
+
+        // Pengaturan RT (RT 01 sampai RT 09)
+        const totalRT = 9;
+        let currentRT = 1;
+        let rtDataCache = {};
+
+        // Inisialisasi Tab Navigasi
+        const tabsContainer = document.getElementById('rt-tabs');
+        for (let i = 1; i <= totalRT; i++) {
+            let rtNum = i < 10 ? '0' + i : i;
+            let btn = document.createElement('button');
+            btn.className = `px-3.5 py-2 rounded-lg text-sm font-bold transition shadow-sm ${i === 1 ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700 hover:bg-slate-300'}`;
+            btn.textContent = `RT. ${rtNum}`;
+            btn.onclick = () => switchRT(i);
+            btn.id = `tab-btn-${i}`;
+            tabsContainer.appendChild(btn);
+        }
+
+        function switchRT(rtNumber) {
+            currentRT = rtNumber;
+            let rtNumFormatted = currentRT < 10 ? '0' + currentRT : currentRT;
+            
+            // Update Tampilan Tombol Tab Aktif
+            for (let i = 1; i <= totalRT; i++) {
+                let b = document.getElementById(`tab-btn-${i}`);
+                if (i === currentRT) {
+                    b.className = "px-3.5 py-2 rounded-lg text-sm font-bold transition shadow-sm bg-emerald-700 text-white";
+                } else {
+                    b.className = "px-3.5 py-2 rounded-lg text-sm font-bold transition shadow-sm bg-white text-slate-700 hover:bg-slate-300";
+                }
+            }
+
+            document.getElementById('current-rt-title').textContent = `RT. ${rtNumFormatted}`;
+            document.getElementById('print-rt-subtitle').textContent = `RT. ${rtNumFormatted}`;
+            
+            loadDataForCurrentRT();
+        }
+
+        // Ambil data dari Firebase Realtime Database
+        function loadDataForCurrentRT() {
+            let dbRef = db.ref(`rt_${currentRT}`);
+            dbRef.on('value', (snapshot) => {
+                let data = snapshot.val() || [];
+                // Pastikan minimal ada 300 baris kosong jika data masih kosong
+                if (data.length === 0) {
+                    data = new Array(300).fill("");
+                }
+                rtDataCache[currentRT] = data;
+                renderTable(data);
+            }, (error) => {
+                console.error("Error membaca database:", error);
+            });
+        }
+
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            let activeCount = 0;
+
+            dataArray.forEach((name, index) => {
+                if (name && name.trim() !== "") {
+                    activeCount++;
+                }
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                
+                tr.innerHTML = `
+                    <td class="p-3 border-b border-slate-200 text-center font-medium text-slate-500">${index + 1}</td>
+                    <td class="p-3 border-b border-slate-200">
+                        <input type="text" value="${name || ''}" 
+                            oninput="updateData(${index}, this.value)" 
+                            placeholder="Ketik nama simpatisan..." 
+                            class="w-full bg-transparent border-0 focus:ring-0 focus:outline-none text-slate-800 placeholder-slate-300 font-normal">
+                    </td>
+                    <td class="p-3 border-b border-slate-200 text-center no-print">
+                        <button onclick="clearRow(${index})" class="text-slate-400 hover:text-red-600 p-1 rounded transition" title="Hapus Baris">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('total-count').textContent = activeCount;
+        }
+
+        // Update data secara real-time ke Firebase (debounce untuk efisiensi)
+        let saveTimeouts = {};
+        function updateData(index, value) {
+            if (!rtDataCache[currentRT]) rtDataCache[currentRT] = [];
+            rtDataCache[currentRT][index] = value;
+
+            // Hitung ulang total langsung di layar agar responsif
+            let count = rtDataCache[currentRT].filter(n => n && n.trim() !== "").length;
+            document.getElementById('total-count').textContent = count;
+
+            // Simpan ke Firebase setelah jeda ketik 500ms
+            clearTimeout(saveTimeouts[currentRT]);
+            saveTimeouts[currentRT] = setTimeout(() => {
+                db.ref(`rt_${currentRT}`).set(rtDataCache[currentRT]);
+            }, 500);
+        }
+
+        // Tambah 1 baris kosong
+        function addRow() {
+            if (!rtDataCache[currentRT]) rtDataCache[currentRT] = [];
+            rtDataCache[currentRT].push("");
+            db.ref(`rt_${currentRT}`).set(rtDataCache[currentRT]);
+        }
+
+        // Hapus isi baris tertentu
+        function clearRow(index) {
+            if (!rtDataCache[currentRT]) return;
+            rtDataCache[currentRT][index] = "";
+            db.ref(`rt_${currentRT}`).set(rtDataCache[currentRT]);
+        }
+
+        // Ekspor ke Foto Resolusi Tinggi (HD)
+        function exportToImage() {
+            const printArea = document.getElementById('print-area');
+            const printHeaders = document.querySelectorAll('.print-header, .print-footer');
+            
+            // Tampilkan header cetak khusus saat mengambil gambar
+            printHeaders.forEach(el => el.classList.remove('hidden'));
+            
+            // Konfigurasi html2canvas resolusi tinggi
+            html2canvas(printArea, {
+                scale: 3, // Skala tinggi agar tajam dan tidak pecah
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                // Sembunyikan kembali header cetak
+                printHeaders.forEach(el => el.classList.add('hidden'));
+                
+                let link = document.createElement('a');
+                let rtNumFormatted = currentRT < 10 ? '0' + currentRT : currentRT;
+                link.download = `Data_Simpatisan_RT_${rtNumFormatted}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+            }).catch(err => {
+                printHeaders.forEach(el => el.classList.add('hidden'));
+                alert("Gagal mengunduh gambar: " + err);
+            });
+        }
+
+        // Muat data RT pertama kali saat halaman dibuka
+        window.onload = function() {
+            switchRT(1);
+        };
+    </script>
+</body>
+</html>
