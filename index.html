@@ -10,106 +10,201 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #e8f5e9; /* Hijau muda lembut */
+            background-color: #f4f6f9;
             margin: 0;
-            padding: 10px;
+            padding: 0;
             color: #333;
+        }
+        .header {
+            background-color: #0d5c38;
+            color: white;
+            text-align: center;
+            padding: 20px 15px;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .header p {
+            font-size: 0.85rem;
+            margin: 0 0 12px 0;
+            opacity: 0.9;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #198754;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 128, 0, 0.15);
-            border-top: 5px solid #2e7d32;
+            margin: 15px auto;
+            padding: 0 10px;
         }
-        h2 {
-            text-align: center;
-            font-size: 1.3rem;
-            color: #2e7d32; /* Hijau tua */
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        .status {
-            text-align: center;
-            font-size: 0.8rem;
-            color: #388e3c;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        .rt-select {
+        .rt-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             margin-bottom: 20px;
         }
-        label {
+        .rt-grid button:nth-child(9) {
+            grid-column: span 4;
+        }
+        .rt-btn {
+            background: white;
+            border: 1px solid #ced4da;
+            padding: 10px 5px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 0.95rem;
-            color: #1b5e20;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s;
         }
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 6px;
-            font-size: 1rem;
-            border: 2px solid #a5d6a7;
-            border-radius: 6px;
-            background-color: #f1f8e9;
-            color: #1b5e20;
-            font-weight: bold;
+        .rt-btn.active {
+            background-color: #0d5c38;
+            color: white;
+            border-color: #0d5c38;
         }
-        select:focus {
-            outline: none;
-            border-color: #2e7d32;
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
-        .input-row {
+        .card-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #212529;
+        }
+        .card-header span {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .action-bar {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
-        input {
+        .btn-add {
             flex: 1;
-            padding: 11px;
-            font-size: 1rem;
-            border: 1px solid #c8e6c9;
+            background-color: #198754;
+            color: white;
+            border: none;
+            padding: 10px;
             border-radius: 6px;
-            background-color: #fafafa;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
         }
-        input:focus {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background-color: #212529;
+            color: white;
+            font-size: 0.8rem;
+            padding: 10px 8px;
+            text-align: left;
+        }
+        th:first-child { width: 40px; text-align: center; border-top-left-radius: 6px; }
+        th:last-child { width: 50px; text-align: center; border-top-right-radius: 6px; }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        td:first-child {
+            text-align: center;
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        .name-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            padding: 6px;
+            color: #333;
+        }
+        .name-input:focus {
             outline: none;
-            border-color: #4caf50;
-            background-color: #fff;
-            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>SIMPATISAN CALON LURAH ABRORI</h2>
-    <div class="status" id="connection-status">Status: Menghubungkan...</div>
+<div class="header">
+    <h1>Simpatisan Calon Lurah Abrori</h1>
+    <p>Pendataan Pendukung & Simpatisan Terpusat<br>(RT. 01 s.d. RT. 09)</p>
+    <div class="status-badge" id="connection-status">Menghubungkan...</div>
+</div>
 
-    <div class="rt-select">
-        <label for="rtSelect">PILIH RT:</label>
-        <select id="rtSelect" onchange="gantiRT()">
-            <option value="RT 01">RT 01</option>
-            <option value="RT 02">RT 02</option>
-            <option value="RT 03">RT 03</option>
-            <option value="RT 04">RT 04</option>
-            <option value="RT 05">RT 05</option>
-            <option value="RT 06">RT 06</option>
-            <option value="RT 07">RT 07</option>
-            <option value="RT 08">RT 08</option>
-            <option value="RT 09">RT 09</option>
-        </select>
+<div class="container">
+    <!-- Tombol Pilihan RT -->
+    <div class="rt-grid" id="rtGrid">
+        <button class="rt-btn active" onclick="pilihRT('RT 01')">RT. 01</button>
+        <button class="rt-btn" onclick="pilihRT('RT 02')">RT. 02</button>
+        <button class="rt-btn" onclick="pilihRT('RT 03')">RT. 03</button>
+        <button class="rt-btn" onclick="pilihRT('RT 04')">RT. 04</button>
+        <button class="rt-btn" onclick="pilihRT('RT 05')">RT. 05</button>
+        <button class="rt-btn" onclick="pilihRT('RT 06')">RT. 06</button>
+        <button class="rt-btn" onclick="pilihRT('RT 07')">RT. 07</button>
+        <button class="rt-btn" onclick="pilihRT('RT 08')">RT. 08</button>
+        <button class="rt-btn" onclick="pilihRT('RT 09')">RT. 09</button>
     </div>
 
-    <div id="form-container">
-        <!-- Kolom input dinamis -->
+    <!-- Konten Tabel per RT -->
+    <div class="card">
+        <div class="card-header">
+            <h2 id="currentRtTitle">RT. 01</h2>
+            <span id="totalCount">Total Simpatisan Tercatat: 0 orang</span>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn-add" onclick="tambahBarisManual()">+ Tambah 1 Baris</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>NO</th>
+                    <th>NAMA LENGKAP SIMPATISAN</th>
+                    <th>AKSI</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data baris dimuat dinamis -->
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // Konfigurasi Firebase
     const firebaseConfig = {
         databaseURL: "https://pilkades-fed6d-default-rtdb.firebaseio.com/"
     };
@@ -118,71 +213,97 @@
     }
     const db = firebase.database();
 
-    // Cek koneksi
     db.ref(".info/connected").on("value", function(snap) {
         if (snap.val() === true) {
-            document.getElementById("connection-status").innerText = "Status: Online (Terhubung)";
+            document.getElementById("connection-statusinnerText" in document.getElementById("connection-status") ? "innerText" : "textContent") = "Online (Terhubung)";
+            document.getElementById("connection-status").innerText = "Online (Terhubung)";
         } else {
-            document.getElementById("connection-status").innerText = "Status: Offline";
+            document.getElementById("connection-status").innerText = "Offline";
         }
     });
 
     let currentRT = "RT 01";
     let databaseData = {};
     let isLocalTyping = false;
+    let manualExtraRows = {}; // Menyimpan tambahan baris kosong manual per RT
 
-    function gantiRT() {
-        currentRT = document.getElementById("rtSelect").value;
-        renderForm();
+    function pilihRT(rt) {
+        currentRT = rt;
+        
+        // Update tombol aktif
+        const buttons = document.querySelectorAll('.rt-btn');
+        buttons.forEach(btn => {
+            if (btn.innerText.includes(rt.replace(' ', ''))) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        document.getElementById("currentRtTitle").innerText = rt.replace(' ', '. ');
+        renderTable();
     }
 
+    // Ambil data real-time dari Firebase
     db.ref("simpatisan").on("value", (snapshot) => {
         if (!isLocalTyping) {
             databaseData = snapshot.val() || {};
-            renderForm();
+            renderTable();
         }
     });
 
-    function renderForm() {
-        const container = document.getElementById("form-container");
+    function renderTable() {
+        const tbody = document.getElementById("tableBody");
         const dataRT = databaseData[currentRT] || {};
         
+        // Hitung jumlah baris yang sudah ada isinya di database
         let maxIndex = -1;
-        const keys = Object.keys(dataRT);
-        keys.forEach(k => {
+        Object.keys(dataRT).forEach(k => {
             let idx = parseInt(k.replace('row_', ''));
-            if (idx > maxIndex) maxIndex = idx;
+            if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
         });
 
-        // Minimal 5 baris awal, jika baris terakhir terisi otomatis tambah baris baru
-        let totalRows = Math.max(5, maxIndex + 1);
-        if (maxIndex >= 0 && dataRT[`row_${maxIndex}`] && dataRT[`row_${maxIndex}`].trim() !== "") {
-            totalRows = maxIndex + 2;
-        }
+        // Minimal 5 baris awal, ditambah baris ekstra manual jika tombol tambah diklik
+        let extra = manualExtraRows[currentRT] || 0;
+        let totalRows = Math.max(5, maxIndex + 1 + extra);
 
-        const activeElementId = document.activeElement ? document.activeElement.id : null;
+        // Simpan elemen yang sedang aktif diketik agar kursor tidak mental/keyboard hilang
+        const activeId = document.activeElement ? document.activeElement.id : null;
+        const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
 
         let html = "";
+        let tercatatCount = 0;
+
         for (let i = 0; i < totalRows; i++) {
             let val = dataRT[`row_${i}`] || "";
-            html += `<div class="input-row">
-                        <input type="text" id="row_${i}" placeholder="Nama Warga Simpatisan ${i+1}" value="${val}" oninput="simpanData(${i}, this.value)">
-                     </div>`;
-        }
-        container.innerHTML = html;
+            if (val.trim() !== "") tercatatCount++;
 
-        if (activeElementId && document.getElementById(activeElementId)) {
-            const el = document.getElementById(activeElementId);
+            html += `<tr>
+                        <td>${i + 1}</td>
+                        <td>
+                            <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)">
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-delete" onclick="hapusBaris(${i})" title="Hapus">🗑️</button>
+                        </td>
+                     </tr>`;
+        }
+        tbody.innerHTML = html;
+        document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${tercatatCount} orang`;
+
+        // Kembalikan fokus kursor agar keyboard HP tetap terbuka stabil
+        if (activeId && document.getElementById(activeId)) {
+            const el = document.getElementById(activeId);
             el.focus();
-            const v = el.value;
-            el.value = '';
-            el.value = v;
+            if (activeSelStart !== null) {
+                try { el.setSelectionRange(activeSelStart, activeSelStart); } catch(e) {}
+            }
         }
     }
 
     function simpanData(index, value) {
         isLocalTyping = true;
-        
+
         if (!databaseData[currentRT]) databaseData[currentRT] = {};
         databaseData[currentRT][`row_${index}`] = value;
 
@@ -190,14 +311,60 @@
             setTimeout(() => { isLocalTyping = false; }, 300);
         });
 
-        const container = document.getElementById("form-container");
-        const rows = container.getElementsByClassName("input-row");
-        if (index === rows.length - 1 && value.trim() !== "") {
-            const newIndex = rows.length;
-            const newRow = document.createElement("div");
-            newRow.className = "input-row";
-            newRow.innerHTML = `<input type="text" id="row_${newIndex}" placeholder="Nama Warga Simpatisan ${newIndex+1}" value="" oninput="simpanData(${newIndex}, this.value)">`;
-            container.appendChild(newRow);
+        // Hitung ulang total tercatat secara instan
+        let count = 0;
+        const dataRT = databaseData[currentRT] || {};
+        Object.keys(dataRT).forEach(k => {
+            if (dataRT[k] && dataRT[k].trim() !== "") count++;
+        });
+        document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${count} orang`;
+
+        // Jika baris terakhir mulai diisi dan hampir habis, otomatis tambahkan 1 baris kosong baru
+        const tbody = document.getElementById("tableBody");
+        if (index >= tbody.rows.length - 2 && value.trim() !== "") {
+            if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
+            manualExtraRows[currentRT]++;
+            // Render cepat baris baru tanpa mengganggu fokus baris saat ini
+            setTimeout(() => renderTable(), 50);
+        }
+    }
+
+    function tambahBarisManual() {
+        if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
+        manualExtraRows[currentRT] += 3; // Tambah 3 baris sekaligus saat tombol diklik
+        renderTable();
+    }
+
+    function hapusBaris(index) {
+        if (!confirm(`Hapus data baris nomor ${index + 1}?`)) return;
+
+        isLocalTyping = true;
+        if (databaseData[currentRT]) {
+            // Geser data ke atas untuk merapikan urutan
+            let dataRT = databaseData[currentRT];
+            delete dataRT[`row_${index}`];
+            
+            // Re-index data
+            let newObj = {};
+            let newIdx = 0;
+            // Urutkan kunci yang ada
+            let keys = Object.keys(dataRT).filter(k => k.startsWith('row_')).sort((a,b) => {
+                return parseInt(a.replace('row_', '')) - parseInt(b.replace('row_', ''));
+            });
+
+            keys.forEach(k => {
+                if (dataRT[k] && dataRT[k].trim() !== "") {
+                    newObj[`row_${newIdx}`] = dataRT[k];
+                    newIdx++;
+                }
+            });
+
+            databaseData[currentRT] = newObj;
+            db.ref(`simpatisan/${currentRT}`).set(newObj).then(() => {
+                isLocalTyping = false;
+                if (manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
+                renderTable();
+            });
         }
     }
 </script>
