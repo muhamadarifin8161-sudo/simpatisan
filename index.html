@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendataan Simpatisan Calon Lurah Abrori</title>
+    <title>SIMPATISAN CALON LURAH ABRORI</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
+            background-color: #e8f5e9; /* Hijau muda lembut */
             margin: 0;
             padding: 10px;
             color: #333;
@@ -19,59 +19,77 @@
             max-width: 600px;
             margin: 0 auto;
             background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 128, 0, 0.15);
+            border-top: 5px solid #2e7d32;
         }
         h2 {
             text-align: center;
-            font-size: 1.2rem;
-            color: #0d6efd;
-            margin-bottom: 15px;
-        }
-        .rt-select {
-            margin-bottom: 15px;
-        }
-        label {
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .input-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        input {
-            flex: 1;
-            padding: 10px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            font-size: 1.3rem;
+            color: #2e7d32; /* Hijau tua */
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
         .status {
             text-align: center;
             font-size: 0.8rem;
-            color: green;
-            margin-bottom: 10px;
+            color: #388e3c;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .rt-select {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #1b5e20;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            font-size: 1rem;
+            border: 2px solid #a5d6a7;
+            border-radius: 6px;
+            background-color: #f1f8e9;
+            color: #1b5e20;
+            font-weight: bold;
+        }
+        select:focus {
+            outline: none;
+            border-color: #2e7d32;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        input {
+            flex: 1;
+            padding: 11px;
+            font-size: 1rem;
+            border: 1px solid #c8e6c9;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4caf50;
+            background-color: #fff;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Simpatisan Lurah Abrori</h2>
-    <div class="status" id="connection-status">Menghubungkan ke database...</div>
+    <h2>SIMPATISAN CALON LURAH ABRORI</h2>
+    <div class="status" id="connection-status">Status: Menghubungkan...</div>
 
     <div class="rt-select">
-        <label for="rtSelect">Pilih RT:</label>
+        <label for="rtSelect">PILIH RT:</label>
         <select id="rtSelect" onchange="gantiRT()">
             <option value="RT 01">RT 01</option>
             <option value="RT 02">RT 02</option>
@@ -86,16 +104,18 @@
     </div>
 
     <div id="form-container">
-        <!-- Kolom input akan digenerate secara dinamis di sini -->
+        <!-- Kolom input dinamis -->
     </div>
 </div>
 
 <script>
-    // Konfigurasi Firebase Anda
+    // Konfigurasi Firebase
     const firebaseConfig = {
         databaseURL: "https://pilkades-fed6d-default-rtdb.firebaseio.com/"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
     // Cek koneksi
@@ -109,14 +129,13 @@
 
     let currentRT = "RT 01";
     let databaseData = {};
-    let isLocalTyping = false; // Mencegah keyboard lompat akibat sinkronisasi berlebih
+    let isLocalTyping = false;
 
     function gantiRT() {
         currentRT = document.getElementById("rtSelect").value;
         renderForm();
     }
 
-    // Ambil data dari Firebase secara real-time sekali di awal/perubahan besar
     db.ref("simpatisan").on("value", (snapshot) => {
         if (!isLocalTyping) {
             databaseData = snapshot.val() || {};
@@ -128,37 +147,33 @@
         const container = document.getElementById("form-container");
         const dataRT = databaseData[currentRT] || {};
         
-        // Cari jumlah baris terisi, minimal tampilkan 5 baris awal
-        let maxIndex = 0;
+        let maxIndex = -1;
         const keys = Object.keys(dataRT);
         keys.forEach(k => {
             let idx = parseInt(k.replace('row_', ''));
             if (idx > maxIndex) maxIndex = idx;
         });
 
-        let totalRows = Math.max(5, maxIndex + 1); 
-        // Jika baris terakhir sudah terisi, tambahkan 1 kolom kosong di bawahnya secara otomatis
-        if (dataRT[`row_${maxIndex}`] && dataRT[`row_${maxIndex}`].trim() !== "") {
+        // Minimal 5 baris awal, jika baris terakhir terisi otomatis tambah baris baru
+        let totalRows = Math.max(5, maxIndex + 1);
+        if (maxIndex >= 0 && dataRT[`row_${maxIndex}`] && dataRT[`row_${maxIndex}`].trim() !== "") {
             totalRows = maxIndex + 2;
         }
 
-        // Simpan fokus elemen yang sedang diketik agar kursor tidak mental
         const activeElementId = document.activeElement ? document.activeElement.id : null;
 
         let html = "";
         for (let i = 0; i < totalRows; i++) {
             let val = dataRT[`row_${i}`] || "";
             html += `<div class="input-row">
-                        <input type="text" id="row_${i}" placeholder="Nama Simpatisan ${i+1}" value="${val}" oninput="simpanData(${i}, this.value)">
+                        <input type="text" id="row_${i}" placeholder="Nama Warga Simpatisan ${i+1}" value="${val}" oninput="simpanData(${i}, this.value)">
                      </div>`;
         }
         container.innerHTML = html;
 
-        // Kembalikan fokus kursor ke kolom semula agar keyboard HP tidak tertutup/turun naik
         if (activeElementId && document.getElementById(activeElementId)) {
             const el = document.getElementById(activeElementId);
             el.focus();
-            // Pindahkan kursor ke ujung teks
             const v = el.value;
             el.value = '';
             el.value = v;
@@ -166,26 +181,22 @@
     }
 
     function simpanData(index, value) {
-        isLocalTyping = true; // Tandai sedang mengetik lokal
+        isLocalTyping = true;
         
-        // Simpan langsung ke state lokal dulu agar responsif
         if (!databaseData[currentRT]) databaseData[currentRT] = {};
         databaseData[currentRT][`row_${index}`] = value;
 
-        // Kirim ke Firebase dengan debounce / langsung
         db.ref(`simpatisan/${currentRT}/row_${index}`).set(value).then(() => {
             setTimeout(() => { isLocalTyping = false; }, 300);
         });
 
-        // Cek secara dinamis apakah baris terakhir sudah mulai diisi untuk memunculkan baris baru di bawahnya tanpa mereset seluruh halaman
         const container = document.getElementById("form-container");
         const rows = container.getElementsByClassName("input-row");
         if (index === rows.length - 1 && value.trim() !== "") {
-            // Tambah baris baru secara instan di DOM tanpa render ulang total
             const newIndex = rows.length;
             const newRow = document.createElement("div");
             newRow.className = "input-row";
-            newRow.innerHTML = `<input type="text" id="row_${newIndex}" placeholder="Nama Simpatisan ${newIndex+1}" value="" oninput="simpanData(${newIndex}, this.value)">`;
+            newRow.innerHTML = `<input type="text" id="row_${newIndex}" placeholder="Nama Warga Simpatisan ${newIndex+1}" value="" oninput="simpanData(${newIndex}, this.value)">`;
             container.appendChild(newRow);
         }
     }
