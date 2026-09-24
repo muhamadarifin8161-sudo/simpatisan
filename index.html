@@ -36,12 +36,15 @@
         }
         .status-badge {
             display: inline-block;
-            background-color: #198754;
+            background-color: #dc3545;
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: bold;
+        }
+        .status-badge.online {
+            background-color: #198754;
         }
         .container {
             max-width: 600px;
@@ -213,24 +216,25 @@
     }
     const db = firebase.database();
 
+    const statusBadge = document.getElementById("connection-status");
     db.ref(".info/connected").on("value", function(snap) {
         if (snap.val() === true) {
-            document.getElementById("connection-statusinnerText" in document.getElementById("connection-status") ? "innerText" : "textContent") = "Online (Terhubung)";
-            document.getElementById("connection-status").innerText = "Online (Terhubung)";
+            statusBadge.innerText = "Online (Terhubung)";
+            statusBadge.classList.add("online");
         } else {
-            document.getElementById("connection-status").innerText = "Offline";
+            statusBadge.innerText = "Offline";
+            statusBadge.classList.remove("online");
         }
     });
 
     let currentRT = "RT 01";
     let databaseData = {};
     let isLocalTyping = false;
-    let manualExtraRows = {}; // Menyimpan tambahan baris kosong manual per RT
+    let manualExtraRows = {}; 
 
     function pilihRT(rt) {
         currentRT = rt;
         
-        // Update tombol aktif
         const buttons = document.querySelectorAll('.rt-btn');
         buttons.forEach(btn => {
             if (btn.innerText.includes(rt.replace(' ', ''))) {
@@ -244,30 +248,34 @@
         renderTable();
     }
 
-    // Ambil data real-time dari Firebase
-    db.ref("simpatisan").on("value", (snapshot) => {
+    // Mendengarkan seluruh perubahan data utama agar sinkron dengan root database
+    db.ref("/").on("value", (snapshot) => {
         if (!isLocalTyping) {
             databaseData = snapshot.val() || {};
             renderTable();
         }
     });
 
+    // Mendapatkan key data RT yang sesuai untuk struktur Firebase (misal: "RT 01" jadi "rt_1")
+    function getDbKey() {
+        let num = parseInt(currentRT.replace('RT ', ''));
+        return "rt_" + num;
+    }
+
     function renderTable() {
         const tbody = document.getElementById("tableBody");
-        const dataRT = databaseData[currentRT] || {};
+        const dbKey = getDbKey();
+        const dataRT = databaseData[dbKey] || {};
         
-        // Hitung jumlah baris yang sudah ada isinya di database
         let maxIndex = -1;
         Object.keys(dataRT).forEach(k => {
             let idx = parseInt(k.replace('row_', ''));
             if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
         });
 
-        // Minimal 5 baris awal, ditambah baris ekstra manual jika tombol tambah diklik
         let extra = manualExtraRows[currentRT] || 0;
         let totalRows = Math.max(5, maxIndex + 1 + extra);
 
-        // Simpan elemen yang sedang aktif diketik agar kursor tidak mental/keyboard hilang
         const activeId = document.activeElement ? document.activeElement.id : null;
         const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
 
@@ -291,7 +299,6 @@
         tbody.innerHTML = html;
         document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${tercatatCount} orang`;
 
-        // Kembalikan fokus kursor agar keyboard HP tetap terbuka stabil
         if (activeId && document.getElementById(activeId)) {
             const el = document.getElementById(activeId);
             el.focus();
@@ -303,35 +310,33 @@
 
     function simpanData(index, value) {
         isLocalTyping = true;
+        const dbKey = getDbKey();
 
-        if (!databaseData[currentRT]) databaseData[currentRT] = {};
-        databaseData[currentRT][`row_${index}`] = value;
+        if (!databaseData[dbKey]) databaseData[dbKey] = {};
+        databaseData[dbKey][`row_${index}`] = value;
 
-        db.ref(`simpatisan/${currentRT}/row_${index}`).set(value).then(() => {
+        db.ref(`${dbKey}/row_${index}`).set(value).then(() => {
             setTimeout(() => { isLocalTyping = false; }, 300);
         });
 
-        // Hitung ulang total tercatat secara instan
         let count = 0;
-        const dataRT = databaseData[currentRT] || {};
+        const dataRT = databaseData[dbKey] || {};
         Object.keys(dataRT).forEach(k => {
             if (dataRT[k] && dataRT[k].trim() !== "") count++;
         });
         document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${count} orang`;
 
-        // Jika baris terakhir mulai diisi dan hampir habis, otomatis tambahkan 1 baris kosong baru
         const tbody = document.getElementById("tableBody");
         if (index >= tbody.rows.length - 2 && value.trim() !== "") {
             if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
             manualExtraRows[currentRT]++;
-            // Render cepat baris baru tanpa mengganggu fokus baris saat ini
             setTimeout(() => renderTable(), 50);
         }
     }
 
     function tambahBarisManual() {
         if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
-        manualExtraRows[currentRT] += 3; // Tambah 3 baris sekaligus saat tombol diklik
+        manualExtraRows[currentRT] += 3;
         renderTable();
     }
 
@@ -339,15 +344,13 @@
         if (!confirm(`Hapus data baris nomor ${index + 1}?`)) return;
 
         isLocalTyping = true;
-        if (databaseData[currentRT]) {
-            // Geser data ke atas untuk merapikan urutan
-            let dataRT = databaseData[currentRT];
+        const dbKey = getDbKey();
+        if (databaseData[dbKey]) {
+            let dataRT = databaseData[dbKey];
             delete dataRT[`row_${index}`];
             
-            // Re-index data
             let newObj = {};
             let newIdx = 0;
-            // Urutkan kunci yang ada
             let keys = Object.keys(dataRT).filter(k => k.startsWith('row_')).sort((a,b) => {
                 return parseInt(a.replace('row_', '')) - parseInt(b.replace('row_', ''));
             });
@@ -359,9 +362,10 @@
                 }
             });
 
-            databaseData[currentRT] = newObj;
-            db.ref(`simpatisan/${currentRT}`).set(newObj).then(() => {
-                isLocalTyping = false;
+            databaseData[dbKey] = newObj;
+            db.ref(`${dbKey}`).set(newObj).then(() => {
+                isLocalLive = false;
+                setTimeout(() => { isLocalTyping = false; }, 300);
                 if (manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
                 renderTable();
             });
