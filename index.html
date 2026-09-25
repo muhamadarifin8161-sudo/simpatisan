@@ -174,6 +174,25 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(13, 92, 56, 0.2);
         }
+        /* Style Tambahan untuk Fitur Pencarian */
+        .search-box-container {
+            margin-bottom: 15px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #0d5c38;
+            background-color: #fff;
+            box-shadow: 0 0 0 2px rgba(13, 92, 56, 0.15);
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -330,6 +349,11 @@
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
         </div>
 
+        <!-- Fitur Tambahan: Kotak Pencarian Simpatisan Global -->
+        <div class="search-box-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari nama simpatisan di semua RT..." oninput="cariSimpatisan(this.value)">
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -386,9 +410,12 @@
     let databaseData = {};
     let isLocalTyping = false;
     let manualExtraRows = {}; 
+    let keywordPencarian = "";
 
     function pilihRT(rt) {
         currentRT = rt;
+        keywordPencarian = "";
+        document.getElementById("searchInput").value = "";
         
         const buttons = document.querySelectorAll('.rt-btn');
         buttons.forEach(btn => {
@@ -403,8 +430,11 @@
         renderTable();
     }
 
+    // Memperbaiki sinkronisasi dengan mendengarkan perubahan secara global pada root database
     db.ref("/").on("value", (snapshot) => {
         databaseData = snapshot.val() || {};
+        
+        // Perbarui tampilan tabel hanya jika pengguna tidak sedang mengetik di input aktif
         if (!isLocalTyping) {
             renderTable();
         }
@@ -445,6 +475,11 @@
         document.getElementById("summaryTotal").innerHTML = `<span>Total Keseluruhan</span><span><b>${grandTotal}</b> orang</span>`;
     }
 
+    function cariSimpatisan(keyword) {
+        keywordPencarian = keyword.toLowerCase().trim();
+        renderTable();
+    }
+
     function renderTable() {
         const tbody = document.getElementById("tableBody");
         const dbKey = getDbKey();
@@ -463,14 +498,19 @@
         const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
 
         let html = "";
-        let tercatatCount = 0;
+        let displayedCount = 0;
 
         for (let i = 0; i < totalRows; i++) {
             let val = dataRT[`row_${i}`] || "";
-            if (val.trim() !== "") tercatatCount++;
+            
+            // Jika sedang melakukan pencarian, saring baris yang cocok
+            if (keywordPencarian !== "" && val.toLowerCase().indexOf(keywordPencarian) === -1 && val.trim() !== "") {
+                continue; 
+            }
 
+            displayedCount++;
             html += `<tr>
-                        <td>${i + 1}</td>
+                        <td>${displayedCount}</td>
                         <td>
                             <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)" onkeydown="handleKeyDown(event, ${i})" onfocus="isLocalTyping=true" onblur="isLocalTyping=false">
                         </td>
@@ -479,6 +519,11 @@
                         </td>
                      </tr>`;
         }
+        
+        if (displayedCount === 0 && keywordPencarian !== "") {
+            html = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Nama "${keywordPencarian}" tidak ditemukan di ${currentRT}.</td></tr>`;
+        }
+
         tbody.innerHTML = html;
 
         if (activeId && document.getElementById(activeId)) {
