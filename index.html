@@ -174,7 +174,6 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(13, 92, 56, 0.2);
         }
-        /* Style Tambahan untuk Fitur Pencarian */
         .search-box-container {
             margin-bottom: 15px;
         }
@@ -349,9 +348,9 @@
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
         </div>
 
-        <!-- Fitur Tambahan: Kotak Pencarian Simpatisan Global -->
+        <!-- Kolom Pencarian Global -->
         <div class="search-box-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari nama simpatisan di semua RT..." oninput="cariSimpatisan(this.value)">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari nama simpatisan..." oninput="cariSimpatisan(this.value)">
         </div>
 
         <table>
@@ -396,7 +395,8 @@
     const db = firebase.database();
 
     const statusBadge = document.getElementById("connection-status");
-    db.ref(".info/connected").on("value", function(snap) {
+    db.infoConnectedRef = db.ref(".info/connected");
+    db.infoConnectedRef.on("value", function(snap) {
         if (snap.val() === true) {
             statusBadge.innerText = "Online (Terhubung)";
             statusBadge.classList.add("online");
@@ -430,11 +430,9 @@
         renderTable();
     }
 
-    // Memperbaiki sinkronisasi dengan mendengarkan perubahan secara global pada root database
+    // Mendengarkan perubahan data secara global agar sinkron di semua perangkat
     db.ref("/").on("value", (snapshot) => {
         databaseData = snapshot.val() || {};
-        
-        // Perbarui tampilan tabel hanya jika pengguna tidak sedang mengetik di input aktif
         if (!isLocalTyping) {
             renderTable();
         }
@@ -503,7 +501,6 @@
         for (let i = 0; i < totalRows; i++) {
             let val = dataRT[`row_${i}`] || "";
             
-            // Jika sedang melakukan pencarian, saring baris yang cocok
             if (keywordPencarian !== "" && val.toLowerCase().indexOf(keywordPencarian) === -1 && val.trim() !== "") {
                 continue; 
             }
