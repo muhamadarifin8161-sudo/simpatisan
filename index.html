@@ -123,6 +123,16 @@
             color: white;
             border-color: #0d5c38;
         }
+        .rt-btn-all {
+            grid-column: span 3;
+            background-color: #1e293b;
+            color: white;
+            border-color: #1e293b;
+        }
+        .rt-btn-all.active {
+            background-color: #064e3b;
+            border-color: #064e3b;
+        }
         .summary-list {
             list-style: none;
             padding: 0;
@@ -216,6 +226,14 @@
             background-color: #ffffff;
             border-color: #0d5c38;
             box-shadow: 0 0 0 2px rgba(13, 92, 56, 0.15);
+        }
+        .rt-tag {
+            font-size: 0.75rem;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #334155;
+            font-weight: bold;
         }
         .btn-delete {
             background: none;
@@ -320,6 +338,7 @@
                 <button class="rt-btn" onclick="pilihRT('RT 07')">RT. 07</button>
                 <button class="rt-btn" onclick="pilihRT('RT 08')">RT. 08</button>
                 <button class="rt-btn" onclick="pilihRT('RT 09')">RT. 09</button>
+                <button class="rt-btn rt-btn-all" onclick="pilihRT('SEMUA')">👁️ Lihat Semua Data (Semua RT)</button>
             </div>
         </div>
     </div>
@@ -335,7 +354,7 @@
                 <tr>
                     <th>NO</th>
                     <th id="tableHeaderTitle">NAMA LENGKAP SIMPATISAN (RT. 01)</th>
-                    <th></th>
+                    <th id="tableHeaderAction" style="width: 55px; text-align: center;"></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -392,14 +411,30 @@
         
         const buttons = document.querySelectorAll('.rt-btn');
         buttons.forEach(btn => {
-            if (btn.innerText.includes(rt.replace(' ', ''))) {
-                btn.classList.add('active');
+            if (rt === 'SEMUA') {
+                if (btn.classList.contains('rt-btn-all')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             } else {
-                btn.classList.remove('active');
+                if (btn.classList.contains('rt-btn-all')) {
+                    btn.classList.remove('active');
+                } else if (btn.innerText.includes(rt.replace(' ', ''))) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             }
         });
 
-        document.getElementById("tableHeaderTitle").innerText = `NAMA LENGKAP SIMPATISAN (${rt.replace(' ', '. ')})`;
+        if (rt === 'SEMUA') {
+            document.getElementById("tableHeaderTitle").innerText = `SEMUA NAMA LENGKAP SIMPATISAN (RT. 01 s.d. RT. 09)`;
+            document.getElementById("tableHeaderAction").innerText = "RT";
+        } else {
+            document.getElementById("tableHeaderTitle").innerText = `NAMA LENGKAP SIMPATISAN (${rt.replace(' ', '. ')})`;
+            document.getElementById("tableHeaderAction").innerText = "";
+        }
         renderTable();
     }
 
@@ -447,6 +482,41 @@
 
     function renderTable() {
         const tbody = document.getElementById("tableBody");
+        
+        // JIKA KLIEN MEMILIH LIHAT SEMUA DATA
+        if (currentRT === 'SEMUA') {
+            let allSimpatisan = [];
+            for (let i = 1; i <= 9; i++) {
+                let dbKey = `rt_${i}`;
+                let dataRT = databaseData[dbKey] || {};
+                Object.keys(dataRT).forEach(k => {
+                    let val = dataRT[k];
+                    if (val && val.trim() !== "") {
+                        allSimpatisan.push({
+                            name: val,
+                            rtLabel: `RT. 0${i}`.replace('RT. 010', 'RT. 10')
+                        });
+                    }
+                });
+            }
+
+            let html = "";
+            if (allSimpatisan.length === 0) {
+                html = `<tr><td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">Belum ada data simpatisan yang diinput.</td></tr>`;
+            } else {
+                allSimpatisan.forEach((item, index) => {
+                    html += `<tr>
+                                <td>${index + 1}</td>
+                                <td style="font-size: 1.05rem; font-weight: 500; color: #0f172a; padding: 10px 8px;">${item.name}</td>
+                                <td style="text-align: center;"><span class="rt-tag">${item.rtLabel}</span></td>
+                             </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+            return;
+        }
+
+        // STRUKTUR ASLI PER RT
         const dbKey = getDbKey();
         const dataRT = databaseData[dbKey] || {};
         
@@ -463,11 +533,8 @@
         const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
 
         let html = "";
-        let tercatatCount = 0;
-
         for (let i = 0; i < totalRows; i++) {
             let val = dataRT[`row_${i}`] || "";
-            if (val.trim() !== "") tercatatCount++;
 
             html += `<tr>
                         <td>${i + 1}</td>
