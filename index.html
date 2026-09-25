@@ -174,24 +174,6 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(13, 92, 56, 0.2);
         }
-        .search-box-container {
-            margin-bottom: 15px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-            background-color: #f8fafc;
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: #0d5c38;
-            background-color: #fff;
-            box-shadow: 0 0 0 2px rgba(13, 92, 56, 0.15);
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -344,11 +326,8 @@
 
     <div class="card">
         <div class="action-bar">
+            <!-- Tombol Ringkasan Rekap Saja -->
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
-        </div>
-
-        <div class="search-box-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari nama simpatisan..." oninput="cariSimpatisan(this.value)">
         </div>
 
         <table>
@@ -365,6 +344,7 @@
     </div>
 </div>
 
+<!-- Elemen Popup Modal Ringkasan Rekap -->
 <div class="modal-overlay" id="modalRingkasan">
     <div class="modal-content">
         <div class="modal-header">
@@ -392,8 +372,7 @@
     const db = firebase.database();
 
     const statusBadge = document.getElementById("connection-status");
-    db.infoConnectedRef = db.ref(".info/connected");
-    db.infoConnectedRef.on("value", function(snap) {
+    db.ref(".info/connected").on("value", function(snap) {
         if (snap.val() === true) {
             statusBadge.innerText = "Online (Terhubung)";
             statusBadge.classList.add("online");
@@ -407,12 +386,9 @@
     let databaseData = {};
     let isLocalTyping = false;
     let manualExtraRows = {}; 
-    let keywordPencarian = "";
 
     function pilihRT(rt) {
         currentRT = rt;
-        keywordPencarian = "";
-        document.getElementById("searchInput").value = "";
         
         const buttons = document.querySelectorAll('.rt-btn');
         buttons.forEach(btn => {
@@ -449,18 +425,17 @@
             let dataRT = databaseData[key] || {};
             let count = 0;
             Object.keys(dataRT).forEach(k => {
-                if (dataRT[k] && typeof dataRT[k] === 'string' && dataRT[k].trim() !== "") count++;
+                if (dataRT[k] && dataRT[k].trim() !== "") count++;
             });
-            summaryData.push({ rt: `RT. 0${i}`.replace('RT. 010', 'RT. 10'), count: count, key: key });
+            summaryData.push({ rt: `RT. 0${i}`.replace('RT. 010', 'RT. 10'), count: count });
             grandTotal += count;
         }
 
-        // Urutkan rekap dari RT 01 sampai RT 09 agar rapi
-        summaryData.sort((a, b) => a.rt.localeCompare(b.rt));
+        summaryData.sort((a, b) => b.count - a.count);
 
         let html = "";
         summaryData.forEach(item => {
-            html += `<li class="summary-item" style="cursor: pointer;" onclick="pilihRT dariRekap('${item.key}')" title="Klik untuk lihat data">
+            html += `<li class="summary-item">
                         <span>${item.rt}</span>
                         <span><b>${item.count}</b> orang</span>
                      </li>`;
@@ -468,18 +443,6 @@
 
         document.getElementById("summaryList").innerHTML = html;
         document.getElementById("summaryTotal").innerHTML = `<span>Total Keseluruhan</span><span><b>${grandTotal}</b> orang</span>`;
-    }
-
-    function pilihRT dariRekap(dbKey) {
-        let num = dbKey.replace('rt_', '');
-        let formatted = "RT " + (num.length === 1 ? "0" + num : num);
-        tutupModalRingkasan();
-        pilihRT(formatted);
-    }
-
-    function cariSimpatisan(keyword) {
-        keywordPencarian = keyword.toLowerCase().trim();
-        renderTable();
     }
 
     function renderTable() {
@@ -500,18 +463,14 @@
         const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
 
         let html = "";
-        let displayedCount = 0;
+        let tercatatCount = 0;
 
         for (let i = 0; i < totalRows; i++) {
             let val = dataRT[`row_${i}`] || "";
-            
-            if (keywordPencarian !== "" && val.toLowerCase().indexOf(keywordPencarian) === -1 && val.trim() !== "") {
-                continue; 
-            }
+            if (val.trim() !== "") tercatatCount++;
 
-            displayedCount++;
             html += `<tr>
-                        <td>${displayedCount}</td>
+                        <td>${i + 1}</td>
                         <td>
                             <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)" onkeydown="handleKeyDown(event, ${i})" onfocus="isLocalTyping=true" onblur="isLocalTyping=false">
                         </td>
@@ -520,11 +479,6 @@
                         </td>
                      </tr>`;
         }
-        
-        if (displayedCount === 0 && keywordPencarian !== "") {
-            html = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Nama "${keywordPencarian}" tidak ditemukan di ${currentRT}.</td></tr>`;
-        }
-
         tbody.innerHTML = html;
 
         if (activeId && document.getElementById(activeId)) {
@@ -605,6 +559,7 @@
         }
     }
 
+    // Fungsi Pengaturan Modal Popup Ringkasan
     function bukaModalRingkasan() {
         document.getElementById("modalRingkasan").style.display = "flex";
     }
