@@ -13,7 +13,7 @@
             background-color: #f4f6f9;
             margin: 0;
             padding: 0;
-            color: #333;
+            color: #111; /* Dipergelap agar lebih tajam dibaca */
         }
         .header {
             background-color: #0d5c38;
@@ -32,15 +32,15 @@
         .header p {
             font-size: 0.85rem;
             margin: 0 0 12px 0;
-            opacity: 0.9;
+            opacity: 0.95;
         }
         .status-badge {
             display: inline-block;
             background-color: #dc3545;
             color: white;
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: bold;
         }
         .status-badge.online {
@@ -62,14 +62,14 @@
         }
         .rt-btn {
             background: white;
-            border: 1px solid #ced4da;
-            padding: 10px 5px;
+            border: 2px solid #cbd5e1;
+            padding: 12px 5px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 0.9rem;
-            color: #333;
+            font-size: 0.95rem;
+            color: #1e293b;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             transition: all 0.2s;
         }
         .rt-btn.active {
@@ -80,22 +80,30 @@
         .card {
             background: white;
             border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
         }
         .card-header {
             text-align: center;
             margin-bottom: 15px;
         }
         .card-header h2 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: #212529;
+            margin: 0 0 6px 0;
+            font-size: 1.3rem;
+            color: #0f172a;
         }
-        .card-header span {
-            font-size: 0.8rem;
-            color: #6c757d;
+        /* DIPERJELAS: Kotak khusus jumlah agar sangat kontras dan mudah dibaca */
+        .total-badge-box {
+            display: inline-block;
+            background-color: #e2f8ec;
+            color: #064e3b;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid #a7f3d0;
         }
         .action-bar {
             display: flex;
@@ -107,54 +115,63 @@
             background-color: #198754;
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 1rem;
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
         }
         table {
             width: 100%;
             border-collapse: collapse;
         }
         th {
-            background-color: #212529;
+            background-color: #1e293b;
             color: white;
-            font-size: 0.8rem;
-            padding: 10px 8px;
+            font-size: 0.85rem;
+            padding: 12px 10px;
             text-align: left;
+            letter-spacing: 0.5px;
         }
-        th:first-child { width: 40px; text-align: center; border-top-left-radius: 6px; }
-        th:last-child { width: 50px; text-align: center; border-top-right-radius: 6px; }
+        th:first-child { width: 45px; text-align: center; border-top-left-radius: 6px; }
+        th:last-child { width: 55px; text-align: center; border-top-right-radius: 6px; }
         td {
-            padding: 8px;
-            border-bottom: 1px solid #dee2e6;
+            padding: 10px 8px;
+            border-bottom: 1px solid #cbd5e1; /* Garis lebih jelas */
+        }
+        /* Efek selang-seling baris tabel (zebra striping) agar mata tidak lelah */
+        tbody tr:nth-child(odd) {
+            background-color: #f8fafc;
         }
         td:first-child {
             text-align: center;
             font-weight: bold;
-            color: #495057;
-            font-size: 0.9rem;
+            color: #334155;
+            font-size: 0.95rem;
         }
         .name-input {
             width: 100%;
-            border: none;
+            border: 1px solid transparent;
             background: transparent;
-            font-size: 0.95rem;
-            padding: 6px;
-            color: #333;
+            font-size: 1.05rem; /* Ukuran font diperbesar agar jelas dibaca */
+            font-weight: 500;
+            padding: 8px;
+            color: #0f172a; /* Warna teks hitam pekat */
+            border-radius: 4px;
         }
         .name-input:focus {
             outline: none;
-            background-color: #f8f9fa;
-            border-radius: 4px;
+            background-color: #ffffff;
+            border-color: #0d5c38;
+            box-shadow: 0 0 0 2px rgba(13, 92, 56, 0.15);
         }
         .btn-delete {
             background: none;
             border: none;
             color: #dc3545;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.2rem;
             padding: 5px;
         }
     </style>
@@ -185,7 +202,9 @@
     <div class="card">
         <div class="card-header">
             <h2 id="currentRtTitle">RT. 01</h2>
-            <span id="totalCount">Total Simpatisan Tercatat: 0 orang</span>
+            <div style="margin-top: 6px;">
+                <span class="total-badge-box" id="totalCount">Total Simpatisan Tercatat: 0 orang</span>
+            </div>
         </div>
 
         <div class="action-bar">
@@ -248,7 +267,6 @@
         renderTable();
     }
 
-    // Mendengarkan seluruh perubahan data utama agar sinkron dengan root database
     db.ref("/").on("value", (snapshot) => {
         if (!isLocalTyping) {
             databaseData = snapshot.val() || {};
@@ -256,7 +274,6 @@
         }
     });
 
-    // Mendapatkan key data RT yang sesuai untuk struktur Firebase (misal: "RT 01" jadi "rt_1")
     function getDbKey() {
         let num = parseInt(currentRT.replace('RT ', ''));
         return "rt_" + num;
@@ -364,7 +381,6 @@
 
             databaseData[dbKey] = newObj;
             db.ref(`${dbKey}`).set(newObj).then(() => {
-                isLocalLive = false;
                 setTimeout(() => { isLocalTyping = false; }, 300);
                 if (manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
                 renderTable();
