@@ -22,7 +22,6 @@
             border-bottom-left-radius: 15px;
             border-bottom-right-radius: 15px;
         }
-        /* Tata letak header berdampingan: Kiri Teks, Kanan Foto */
         .header-content {
             display: flex;
             align-items: center;
@@ -50,17 +49,18 @@
         }
         .header-photo-container {
             flex-shrink: 0;
+            background: white;
+            border-radius: 12px;
+            padding: 2px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
         }
-        /* Perbaikan tampilan foto agar pas, proporsional, dan fokus ke wajah */
         .candidate-photo {
-            width: 80px;
-            height: 95px;
+            width: 75px;
+            height: 90px;
             border-radius: 10px;
             object-fit: cover;
             object-position: top center;
-            border: 3px solid #ffffff;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
-            background-color: #ffffff;
+            display: block;
         }
         .status-badge {
             display: inline-block;
@@ -218,7 +218,6 @@
 </div>
 
 <div class="container">
-    <!-- Tombol Pilihan RT -->
     <div class="rt-grid" id="rtGrid">
         <button class="rt-btn active" onclick="pilihRT('RT 01')">RT. 01</button>
         <button class="rt-btn" onclick="pilihRT('RT 02')">RT. 02</button>
@@ -231,7 +230,6 @@
         <button class="rt-btn" onclick="pilihRT('RT 09')">RT. 09</button>
     </div>
 
-    <!-- Konten Tabel per RT -->
     <div class="card">
         <div class="card-header">
             <h2 id="currentRtTitle">RT. 01</h2>
@@ -249,11 +247,10 @@
                 <tr>
                     <th>NO</th>
                     <th>NAMA LENGKAP SIMPATISAN</th>
-                    <th>AKSI</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- Data baris dimuat dinamis -->
             </tbody>
         </table>
     </div>
@@ -324,7 +321,7 @@
         });
 
         let extra = manualExtraRows[currentRT] || 0;
-        let totalRows = Math.max(5, maxIndex + 1 + extra);
+        let totalRows = Math.max(5, maxIndex + 2 + extra); // Selalu sediakan sisa baris kosong di bawah
 
         const activeId = document.activeElement ? document.activeElement.id : null;
         const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
@@ -339,7 +336,7 @@
             html += `<tr>
                         <td>${i + 1}</td>
                         <td>
-                            <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)">
+                            <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)" onkeydown="handleKeyDown(event, ${i})">
                         </td>
                         <td style="text-align: center;">
                             <button class="btn-delete" onclick="hapusBaris(${i})" title="Hapus">🗑️</button>
@@ -354,6 +351,24 @@
             el.focus();
             if (activeSelStart !== null) {
                 try { el.setSelectionRange(activeSelStart, activeSelStart); } catch(e) {}
+            }
+        }
+    }
+
+    function handleKeyDown(event, index) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const nextInput = document.getElementById(`row_${index + 1}`);
+            if (nextInput) {
+                nextInput.focus();
+            } else {
+                if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
+                manualExtraRows[currentRT]++;
+                renderTable();
+                setTimeout(() => {
+                    const newNextInput = document.getElementById(`row_${index + 1}`);
+                    if (newNextInput) newNextInput.focus();
+                }, 50);
             }
         }
     }
