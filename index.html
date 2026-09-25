@@ -344,11 +344,9 @@
 
     <div class="card">
         <div class="action-bar">
-            <!-- Tombol Ringkasan Rekap Saja -->
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
         </div>
 
-        <!-- Kolom Pencarian Global -->
         <div class="search-box-container">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cari nama simpatisan..." oninput="cariSimpatisan(this.value)">
         </div>
@@ -367,7 +365,6 @@
     </div>
 </div>
 
-<!-- Elemen Popup Modal Ringkasan Rekap -->
 <div class="modal-overlay" id="modalRingkasan">
     <div class="modal-content">
         <div class="modal-header">
@@ -395,7 +392,8 @@
     const db = firebase.database();
 
     const statusBadge = document.getElementById("connection-status");
-    db.ref(".info/connected").on("value", function(snap) {
+    db.infoConnectedRef = db.ref(".info/connected");
+    db.infoConnectedRef.on("value", function(snap) {
         if (snap.val() === true) {
             statusBadge.innerText = "Online (Terhubung)";
             statusBadge.classList.add("online");
@@ -438,7 +436,7 @@
     });
 
     function getDbKey() {
-        let num = parseInt(currentRT.replace('RT ', ''), 10);
+        let num = parseInt(currentRT.replace('RT ', ''));
         return "rt_" + num;
     }
 
@@ -457,7 +455,7 @@
             grandTotal += count;
         }
 
-        // Urutkan berdasarkan abjad RT agar susunannya stabil (RT. 01 sampai RT. 09)
+        // Urutkan rekap dari RT 01 sampai RT 09 agar rapi
         summaryData.sort((a, b) => a.rt.localeCompare(b.rt));
 
         let html = "";
@@ -472,7 +470,6 @@
         document.getElementById("summaryTotal").innerHTML = `<span>Total Keseluruhan</span><span><b>${grandTotal}</b> orang</span>`;
     }
 
-    // Fungsi tambahan agar saat baris rekap diklik, langsung membuka RT tersebut
     function pilihRT dariRekap(dbKey) {
         let num = dbKey.replace('rt_', '');
         let formatted = "RT " + (num.length === 1 ? "0" + num : num);
@@ -492,7 +489,7 @@
         
         let maxIndex = -1;
         Object.keys(dataRT).forEach(k => {
-            let idx = parseInt(k.replace('row_', ''), 10);
+            let idx = parseInt(k.replace('row_', ''));
             if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
         });
 
@@ -589,7 +586,7 @@
             let newObj = {};
             let newIdx = 0;
             let keys = Object.keys(dataRT).filter(k => k.startsWith('row_')).sort((a,b) => {
-                return parseInt(a.replace('row_', ''), 10) - parseInt(b.replace('row_', ''), 10);
+                return parseInt(a.replace('row_', '')) - parseInt(b.replace('row_', ''));
             });
 
             keys.forEach(k => {
