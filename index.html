@@ -79,17 +79,11 @@
             margin: 15px auto;
             padding: 0 10px;
         }
-        /* Tata Letak Dua Kolom: Kiri Tab RT, Kanan Ringkasan */
         .dashboard-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 12px;
             margin-bottom: 20px;
-        }
-        @media (max-width: 480px) {
-            .dashboard-layout {
-                grid-template-columns: 1fr;
-            }
         }
         .panel-box {
             background: white;
@@ -129,17 +123,16 @@
             color: white;
             border-color: #0d5c38;
         }
-        /* Style Daftar Ringkasan Kanan */
         .summary-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
         .summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 5px 8px;
+            padding: 8px 10px;
             border-bottom: 1px dashed #e2e8f0;
             color: #334155;
         }
@@ -147,14 +140,14 @@
             border-bottom: none;
         }
         .summary-total {
-            margin-top: 8px;
-            padding-top: 6px;
+            margin-top: 12px;
+            padding-top: 10px;
             border-top: 2px solid #cbd5e1;
             display: flex;
             justify-content: space-between;
             font-weight: bold;
             color: #064e3b;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
         }
         .card {
             background: white;
@@ -169,9 +162,9 @@
             gap: 10px;
             margin-bottom: 15px;
         }
-        .btn-add {
+        .btn-summary {
             flex: 1;
-            background-color: #198754;
+            background-color: #0d5c38;
             color: white;
             border: none;
             padding: 12px;
@@ -179,7 +172,7 @@
             font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+            box-shadow: 0 2px 4px rgba(13, 92, 56, 0.2);
         }
         table {
             width: 100%;
@@ -232,6 +225,70 @@
             font-size: 1.2rem;
             padding: 5px;
         }
+
+        /* Style untuk Popup Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: modalPop 0.2s ease-in-out;
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .modal-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #64748b;
+            font-weight: bold;
+        }
+        .modal-footer {
+            margin-top: 15px;
+            text-align: right;
+        }
+        .btn-close-modal {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -250,7 +307,6 @@
 </div>
 
 <div class="container">
-    <!-- Tata Letak Dua Kolom: Kiri Tombol Tab RT, Kanan Ringkasan Rekap -->
     <div class="dashboard-layout">
         <div class="panel-box">
             <div class="panel-title">PILIH RT</div>
@@ -266,20 +322,12 @@
                 <button class="rt-btn" onclick="pilihRT('RT 09')">RT. 09</button>
             </div>
         </div>
-
-        <div class="panel-box">
-            <div class="panel-title">RINGKASAN REKAP</div>
-            <ul class="summary-list" id="summaryList"></ul>
-            <div class="summary-total" id="summaryTotal">
-                <span>Total Keseluruhan</span>
-                <span>0 orang</span>
-            </div>
-        </div>
     </div>
 
     <div class="card">
         <div class="action-bar">
-            <button class="btn-add" onclick="tambahBarisManual()">+ Tambah 1 Baris</button>
+            <!-- Tombol Ringkasan Rekap Saja -->
+            <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
         </div>
 
         <table>
@@ -293,6 +341,24 @@
             <tbody id="tableBody">
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Elemen Popup Modal Ringkasan Rekap -->
+<div class="modal-overlay" id="modalRingkasan">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">RINGKASAN REKAP SIMPATISAN</div>
+            <button class="modal-close" onclick="tutupModalRingkasan()">✕</button>
+        </div>
+        <ul class="summary-list" id="summaryList"></ul>
+        <div class="summary-total" id="summaryTotal">
+            <span>Total Keseluruhan</span>
+            <span>0 orang</span>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-close-modal" onclick="tutupModalRingkasan()">Tutup</button>
+        </div>
     </div>
 </div>
 
@@ -462,13 +528,6 @@
         }
     }
 
-    function tambahBarisManual() {
-        if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
-        manualExtraRows[currentRT] += 3;
-        isLocalTyping = false;
-        renderTable();
-    }
-
     function hapusBaris(index) {
         if (!confirm(`Hapus data baris nomor ${index + 1}?`)) return;
 
@@ -497,6 +556,22 @@
                 renderTable();
                 updateSummary();
             });
+        }
+    }
+
+    // Fungsi Pengaturan Modal Popup Ringkasan
+    function bukaModalRingkasan() {
+        document.getElementById("modalRingkasan").style.display = "flex";
+    }
+
+    function tutupModalRingkasan() {
+        document.getElementById("modalRingkasan").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById("modalRingkasan");
+        if (event.target === modal) {
+            modal.style.display = "none";
         }
     }
 </script>
