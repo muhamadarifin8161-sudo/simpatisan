@@ -79,7 +79,7 @@
             margin: 15px auto;
             padding: 0 10px;
         }
-        /* Tata Letak Dua Kolom Baru */
+        /* Tata Letak Dua Kolom: Kiri Tab RT, Kanan Ringkasan */
         .dashboard-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -163,25 +163,6 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             margin-bottom: 20px;
             border: 1px solid #e2e8f0;
-        }
-        .card-header {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .card-header h2 {
-            margin: 0 0 6px 0;
-            font-size: 1.3rem;
-            color: #0f172a;
-        }
-        .total-badge-box {
-            display: inline-block;
-            background-color: #e2f8ec;
-            color: #064e3b;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border: 1px solid #a7f3d0;
         }
         .action-bar {
             display: flex;
@@ -269,7 +250,7 @@
 </div>
 
 <div class="container">
-    <!-- Tata Letak Dua Kolom: Kiri Tombol RT, Kanan Ringkasan Jumlah -->
+    <!-- Tata Letak Dua Kolom: Kiri Tombol Tab RT, Kanan Ringkasan Rekap -->
     <div class="dashboard-layout">
         <div class="panel-box">
             <div class="panel-title">PILIH RT</div>
@@ -297,13 +278,6 @@
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <h2 id="currentRtTitle">RT. 01</h2>
-            <div style="margin-top: 6px;">
-                <span class="total-badge-box" id="totalCount">Total Simpatisan Tercatat: 0 orang</span>
-            </div>
-        </div>
-
         <div class="action-bar">
             <button class="btn-add" onclick="tambahBarisManual()">+ Tambah 1 Baris</button>
         </div>
@@ -312,7 +286,7 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th>NAMA LENGKAP SIMPATISAN</th>
+                    <th id="tableHeaderTitle">NAMA LENGKAP SIMPATISAN (RT. 01)</th>
                     <th></th>
                 </tr>
             </thead>
@@ -359,7 +333,7 @@
             }
         });
 
-        document.getElementById("currentRtTitle").innerText = rt.replace(' ', '. ');
+        document.getElementById("tableHeaderTitle").innerText = `NAMA LENGKAP SIMPATISAN (${rt.replace(' ', '. ')})`;
         renderTable();
     }
 
@@ -376,7 +350,6 @@
         return "rt_" + num;
     }
 
-    // Fungsi untuk memperbarui daftar ringkasan rekap di sebelah kanan
     function updateSummary() {
         let summaryData = [];
         let grandTotal = 0;
@@ -392,7 +365,6 @@
             grandTotal += count;
         }
 
-        // Urutkan otomatis dari jumlah terbanyak
         summaryData.sort((a, b) => b.count - a.count);
 
         let html = "";
@@ -419,7 +391,7 @@
         });
 
         let extra = manualExtraRows[currentRT] || 0;
-        let totalRows = Math.max(5, maxIndex + 2 + extra); // Selalu sediakan sisa baris kosong di bawah
+        let totalRows = Math.max(5, maxIndex + 2 + extra);
 
         const activeId = document.activeElement ? document.activeElement.id : null;
         const activeSelStart = document.activeElement && document.activeElement.selectionStart !== undefined ? document.activeElement.selectionStart : null;
@@ -442,7 +414,6 @@
                      </tr>`;
         }
         tbody.innerHTML = html;
-        document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${tercatatCount} orang`;
 
         if (activeId && document.getElementById(activeId)) {
             const el = document.getElementById(activeId);
@@ -481,12 +452,6 @@
 
         db.ref(`${dbKey}/row_${index}`).set(value);
 
-        let count = 0;
-        const dataRT = databaseData[dbKey] || {};
-        Object.keys(dataRT).forEach(k => {
-            if (dataRT[k] && dataRT[k].trim() !== "") count++;
-        });
-        document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${count} orang`;
         updateSummary();
 
         const tbody = document.getElementById("tableBody");
