@@ -51,13 +51,16 @@
         .header-photo-container {
             flex-shrink: 0;
         }
+        /* Perbaikan tampilan foto agar pas, proporsional, dan fokus ke wajah */
         .candidate-photo {
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
+            width: 80px;
+            height: 95px;
+            border-radius: 10px;
             object-fit: cover;
+            object-position: top center;
             border: 3px solid #ffffff;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+            background-color: #ffffff;
         }
         .status-badge {
             display: inline-block;
@@ -209,7 +212,6 @@
             <div class="status-badge" id="connection-status">Menghubungkan...</div>
         </div>
         <div class="header-photo-container">
-            <!-- Pastikan nama file foto di GitHub sesuai dengan ini (misal: foto_abrori.jpg) -->
             <img src="foto_abrori.jpg" alt="Abrori" class="candidate-photo">
         </div>
     </div>
