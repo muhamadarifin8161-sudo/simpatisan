@@ -13,34 +13,59 @@
             background-color: #f4f6f9;
             margin: 0;
             padding: 0;
-            color: #111; /* Dipergelap agar lebih tajam dibaca */
+            color: #111;
         }
         .header {
             background-color: #0d5c38;
             color: white;
-            text-align: center;
-            padding: 20px 15px;
+            padding: 18px 15px;
             border-bottom-left-radius: 15px;
             border-bottom-right-radius: 15px;
         }
+        /* Tata letak header berdampingan: Kiri Teks, Kanan Foto */
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header-text {
+            flex: 1;
+            text-align: left;
+        }
         .header h1 {
-            font-size: 1.3rem;
-            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+            margin: 0 0 6px 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            line-height: 1.3;
         }
         .header p {
-            font-size: 0.85rem;
-            margin: 0 0 12px 0;
+            font-size: 0.8rem;
+            margin: 0 0 10px 0;
             opacity: 0.95;
+            line-height: 1.2;
+        }
+        .header-photo-container {
+            flex-shrink: 0;
+        }
+        .candidate-photo {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ffffff;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
         }
         .status-badge {
             display: inline-block;
             background-color: #dc3545;
             color: white;
-            padding: 5px 14px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
         }
         .status-badge.online {
@@ -94,7 +119,6 @@
             font-size: 1.3rem;
             color: #0f172a;
         }
-        /* DIPERJELAS: Kotak khusus jumlah agar sangat kontras dan mudah dibaca */
         .total-badge-box {
             display: inline-block;
             background-color: #e2f8ec;
@@ -138,9 +162,8 @@
         th:last-child { width: 55px; text-align: center; border-top-right-radius: 6px; }
         td {
             padding: 10px 8px;
-            border-bottom: 1px solid #cbd5e1; /* Garis lebih jelas */
+            border-bottom: 1px solid #cbd5e1;
         }
-        /* Efek selang-seling baris tabel (zebra striping) agar mata tidak lelah */
         tbody tr:nth-child(odd) {
             background-color: #f8fafc;
         }
@@ -154,10 +177,10 @@
             width: 100%;
             border: 1px solid transparent;
             background: transparent;
-            font-size: 1.05rem; /* Ukuran font diperbesar agar jelas dibaca */
+            font-size: 1.05rem;
             font-weight: 500;
             padding: 8px;
-            color: #0f172a; /* Warna teks hitam pekat */
+            color: #0f172a;
             border-radius: 4px;
         }
         .name-input:focus {
@@ -179,9 +202,17 @@
 <body>
 
 <div class="header">
-    <h1>Simpatisan Calon Lurah Abrori</h1>
-    <p>Pendataan Pendukung & Simpatisan Terpusat<br>(RT. 01 s.d. RT. 09)</p>
-    <div class="status-badge" id="connection-status">Menghubungkan...</div>
+    <div class="header-content">
+        <div class="header-text">
+            <h1>Simpatisan Calon Lurah Abrori</h1>
+            <p>Pendataan Pendukung & Simpatisan<br>(RT. 01 s.d. RT. 09)</p>
+            <div class="status-badge" id="connection-status">Menghubungkan...</div>
+        </div>
+        <div class="header-photo-container">
+            <!-- Pastikan nama file foto di GitHub sesuai dengan ini (misal: foto_abrori.jpg) -->
+            <img src="foto_abrori.jpg" alt="Abrori" class="candidate-photo">
+        </div>
+    </div>
 </div>
 
 <div class="container">
