@@ -395,8 +395,7 @@
     const db = firebase.database();
 
     const statusBadge = document.getElementById("connection-status");
-    db.infoConnectedRef = db.ref(".info/connected");
-    db.infoConnectedRef.on("value", function(snap) {
+    db.ref(".info/connected").on("value", function(snap) {
         if (snap.val() === true) {
             statusBadge.innerText = "Online (Terhubung)";
             statusBadge.classList.add("online");
@@ -430,7 +429,6 @@
         renderTable();
     }
 
-    // Mendengarkan perubahan data secara global agar sinkron di semua perangkat
     db.ref("/").on("value", (snapshot) => {
         databaseData = snapshot.val() || {};
         if (!isLocalTyping) {
@@ -440,7 +438,7 @@
     });
 
     function getDbKey() {
-        let num = parseInt(currentRT.replace('RT ', ''));
+        let num = parseInt(currentRT.replace('RT ', ''), 10);
         return "rt_" + num;
     }
 
@@ -453,17 +451,18 @@
             let dataRT = databaseData[key] || {};
             let count = 0;
             Object.keys(dataRT).forEach(k => {
-                if (dataRT[k] && dataRT[k].trim() !== "") count++;
+                if (dataRT[k] && typeof dataRT[k] === 'string' && dataRT[k].trim() !== "") count++;
             });
-            summaryData.push({ rt: `RT. 0${i}`.replace('RT. 010', 'RT. 10'), count: count });
+            summaryData.push({ rt: `RT. 0${i}`.replace('RT. 010', 'RT. 10'), count: count, key: key });
             grandTotal += count;
         }
 
-        summaryData.sort((a, b) => b.count - a.count);
+        // Urutkan berdasarkan abjad RT agar susunannya stabil (RT. 01 sampai RT. 09)
+        summaryData.sort((a, b) => a.rt.localeCompare(b.rt));
 
         let html = "";
         summaryData.forEach(item => {
-            html += `<li class="summary-item">
+            html += `<li class="summary-item" style="cursor: pointer;" onclick="pilihRT dariRekap('${item.key}')" title="Klik untuk lihat data">
                         <span>${item.rt}</span>
                         <span><b>${item.count}</b> orang</span>
                      </li>`;
@@ -471,6 +470,14 @@
 
         document.getElementById("summaryList").innerHTML = html;
         document.getElementById("summaryTotal").innerHTML = `<span>Total Keseluruhan</span><span><b>${grandTotal}</b> orang</span>`;
+    }
+
+    // Fungsi tambahan agar saat baris rekap diklik, langsung membuka RT tersebut
+    function pilihRT dariRekap(dbKey) {
+        let num = dbKey.replace('rt_', '');
+        let formatted = "RT " + (num.length === 1 ? "0" + num : num);
+        tutupModalRingkasan();
+        pilihRT(formatted);
     }
 
     function cariSimpatisan(keyword) {
@@ -485,7 +492,7 @@
         
         let maxIndex = -1;
         Object.keys(dataRT).forEach(k => {
-            let idx = parseInt(k.replace('row_', ''));
+            let idx = parseInt(k.replace('row_', ''), 10);
             if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
         });
 
@@ -582,7 +589,7 @@
             let newObj = {};
             let newIdx = 0;
             let keys = Object.keys(dataRT).filter(k => k.startsWith('row_')).sort((a,b) => {
-                return parseInt(a.replace('row_', '')) - parseInt(b.replace('row_', ''));
+                return parseInt(a.replace('row_', ''), 10) - parseInt(b.replace('row_', ''), 10);
             });
 
             keys.forEach(k => {
@@ -601,7 +608,6 @@
         }
     }
 
-    // Fungsi Pengaturan Modal Popup Ringkasan
     function bukaModalRingkasan() {
         document.getElementById("modalRingkasan").style.display = "flex";
     }
