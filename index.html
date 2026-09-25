@@ -27,7 +27,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
         }
         .header-text {
@@ -75,35 +75,86 @@
             background-color: #198754;
         }
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 15px auto;
             padding: 0 10px;
         }
-        .rt-grid {
+        /* Tata Letak Dua Kolom Baru */
+        .dashboard-layout {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-bottom: 20px;
         }
-        .rt-grid button:nth-child(9) {
-            grid-column: span 4;
+        @media (max-width: 480px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel-box {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 8px;
+            text-align: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 6px;
+        }
+        .rt-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
         }
         .rt-btn {
             background: white;
             border: 2px solid #cbd5e1;
-            padding: 12px 5px;
-            border-radius: 8px;
+            padding: 10px 2px;
+            border-radius: 6px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #1e293b;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            text-align: center;
             transition: all 0.2s;
         }
         .rt-btn.active {
             background-color: #0d5c38;
             color: white;
             border-color: #0d5c38;
+        }
+        /* Style Daftar Ringkasan Kanan */
+        .summary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 8px;
+            border-bottom: 1px dashed #e2e8f0;
+            color: #334155;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-total {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 2px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #064e3b;
+            font-size: 0.85rem;
         }
         .card {
             background: white;
@@ -218,16 +269,31 @@
 </div>
 
 <div class="container">
-    <div class="rt-grid" id="rtGrid">
-        <button class="rt-btn active" onclick="pilihRT('RT 01')">RT. 01</button>
-        <button class="rt-btn" onclick="pilihRT('RT 02')">RT. 02</button>
-        <button class="rt-btn" onclick="pilihRT('RT 03')">RT. 03</button>
-        <button class="rt-btn" onclick="pilihRT('RT 04')">RT. 04</button>
-        <button class="rt-btn" onclick="pilihRT('RT 05')">RT. 05</button>
-        <button class="rt-btn" onclick="pilihRT('RT 06')">RT. 06</button>
-        <button class="rt-btn" onclick="pilihRT('RT 07')">RT. 07</button>
-        <button class="rt-btn" onclick="pilihRT('RT 08')">RT. 08</button>
-        <button class="rt-btn" onclick="pilihRT('RT 09')">RT. 09</button>
+    <!-- Tata Letak Dua Kolom: Kiri Tombol RT, Kanan Ringkasan Jumlah -->
+    <div class="dashboard-layout">
+        <div class="panel-box">
+            <div class="panel-title">PILIH RT</div>
+            <div class="rt-grid" id="rtGrid">
+                <button class="rt-btn active" onclick="pilihRT('RT 01')">RT. 01</button>
+                <button class="rt-btn" onclick="pilihRT('RT 02')">RT. 02</button>
+                <button class="rt-btn" onclick="pilihRT('RT 03')">RT. 03</button>
+                <button class="rt-btn" onclick="pilihRT('RT 04')">RT. 04</button>
+                <button class="rt-btn" onclick="pilihRT('RT 05')">RT. 05</button>
+                <button class="rt-btn" onclick="pilihRT('RT 06')">RT. 06</button>
+                <button class="rt-btn" onclick="pilihRT('RT 07')">RT. 07</button>
+                <button class="rt-btn" onclick="pilihRT('RT 08')">RT. 08</button>
+                <button class="rt-btn" onclick="pilihRT('RT 09')">RT. 09</button>
+            </div>
+        </div>
+
+        <div class="panel-box">
+            <div class="panel-title">RINGKASAN REKAP</div>
+            <ul class="summary-list" id="summaryList"></ul>
+            <div class="summary-total" id="summaryTotal">
+                <span>Total Keseluruhan</span>
+                <span>0 orang</span>
+            </div>
+        </div>
     </div>
 
     <div class="card">
@@ -298,15 +364,47 @@
     }
 
     db.ref("/").on("value", (snapshot) => {
+        databaseData = snapshot.val() || {};
         if (!isLocalTyping) {
-            databaseData = snapshot.val() || {};
             renderTable();
         }
+        updateSummary();
     });
 
     function getDbKey() {
         let num = parseInt(currentRT.replace('RT ', ''));
         return "rt_" + num;
+    }
+
+    // Fungsi untuk memperbarui daftar ringkasan rekap di sebelah kanan
+    function updateSummary() {
+        let summaryData = [];
+        let grandTotal = 0;
+
+        for (let i = 1; i <= 9; i++) {
+            let key = `rt_${i}`;
+            let dataRT = databaseData[key] || {};
+            let count = 0;
+            Object.keys(dataRT).forEach(k => {
+                if (dataRT[k] && dataRT[k].trim() !== "") count++;
+            });
+            summaryData.push({ rt: `RT. 0${i}`.replace('RT. 010', 'RT. 10'), count: count });
+            grandTotal += count;
+        }
+
+        // Urutkan otomatis dari jumlah terbanyak
+        summaryData.sort((a, b) => b.count - a.count);
+
+        let html = "";
+        summaryData.forEach(item => {
+            html += `<li class="summary-item">
+                        <span>${item.rt}</span>
+                        <span><b>${item.count}</b> orang</span>
+                     </li>`;
+        });
+
+        document.getElementById("summaryList").innerHTML = html;
+        document.getElementById("summaryTotal").innerHTML = `<span>Total Keseluruhan</span><span><b>${grandTotal}</b> orang</span>`;
     }
 
     function renderTable() {
@@ -336,7 +434,7 @@
             html += `<tr>
                         <td>${i + 1}</td>
                         <td>
-                            <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)" onkeydown="handleKeyDown(event, ${i})">
+                            <input type="text" class="name-input" id="row_${i}" placeholder="Ketik nama simpatisan" value="${val}" oninput="simpanData(${i}, this.value)" onkeydown="handleKeyDown(event, ${i})" onfocus="isLocalTyping=true" onblur="isLocalTyping=false">
                         </td>
                         <td style="text-align: center;">
                             <button class="btn-delete" onclick="hapusBaris(${i})" title="Hapus">🗑️</button>
@@ -364,6 +462,7 @@
             } else {
                 if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
                 manualExtraRows[currentRT]++;
+                isLocalTyping = false;
                 renderTable();
                 setTimeout(() => {
                     const newNextInput = document.getElementById(`row_${index + 1}`);
@@ -380,9 +479,7 @@
         if (!databaseData[dbKey]) databaseData[dbKey] = {};
         databaseData[dbKey][`row_${index}`] = value;
 
-        db.ref(`${dbKey}/row_${index}`).set(value).then(() => {
-            setTimeout(() => { isLocalTyping = false; }, 300);
-        });
+        db.ref(`${dbKey}/row_${index}`).set(value);
 
         let count = 0;
         const dataRT = databaseData[dbKey] || {};
@@ -390,6 +487,7 @@
             if (dataRT[k] && dataRT[k].trim() !== "") count++;
         });
         document.getElementById("totalCount").innerText = `Total Simpatisan Tercatat: ${count} orang`;
+        updateSummary();
 
         const tbody = document.getElementById("tableBody");
         if (index >= tbody.rows.length - 2 && value.trim() !== "") {
@@ -402,13 +500,14 @@
     function tambahBarisManual() {
         if (!manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
         manualExtraRows[currentRT] += 3;
+        isLocalTyping = false;
         renderTable();
     }
 
     function hapusBaris(index) {
         if (!confirm(`Hapus data baris nomor ${index + 1}?`)) return;
 
-        isLocalTyping = true;
+        isLocalTyping = false;
         const dbKey = getDbKey();
         if (databaseData[dbKey]) {
             let dataRT = databaseData[dbKey];
@@ -429,9 +528,9 @@
 
             databaseData[dbKey] = newObj;
             db.ref(`${dbKey}`).set(newObj).then(() => {
-                setTimeout(() => { isLocalTyping = false; }, 300);
                 if (manualExtraRows[currentRT]) manualExtraRows[currentRT] = 0;
                 renderTable();
+                updateSummary();
             });
         }
     }
