@@ -258,7 +258,7 @@
             padding: 5px;
         }
 
-        /* Area khusus yang akan diexport jadi JPG landscape agar rapi dan multi-kolom grid ke samping */
+        /* Area khusus yang akan diexport jadi JPG landscape */
         #exportArea {
             background: white;
             padding: 20px;
@@ -280,6 +280,11 @@
             margin: 0;
             font-size: 0.85rem;
             color: #475569;
+        }
+
+        /* Container Multi-Kolom Berjajar untuk Ratusan Warga */
+        #multiColumnExportWrapper {
+            display: none;
         }
 
         /* Style untuk Popup Modal */
@@ -471,17 +476,24 @@
                 <h2 id="exportTitleMain">Daftar Simpatisan Calon Lurah Abrori</h2>
                 <p id="exportSubTitle">Pendataan Pendukung & Simpatisan</p>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">NO</th>
-                        <th id="tableHeaderTitle">NAMA LENGKAP SIMPATISAN (RT. 01)</th>
-                        <th id="tableHeaderAction" style="width: 60px; text-align: center;"></th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                </tbody>
-            </table>
+
+            <!-- Tampilan Normal di Aplikasi -->
+            <div id="normalTableContainer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">NO</th>
+                            <th id="tableHeaderTitle">NAMA LENGKAP SIMPATISAN (RT. 01)</th>
+                            <th id="tableHeaderAction" style="width: 60px; text-align: center;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tampilan Multi-Kolom Khusus Saat Download JPG -->
+            <div id="multiColumnExportWrapper"></div>
         </div>
     </div>
 </div>
@@ -790,49 +802,112 @@
         }
     }
 
-    // FUNGSI UTAMA: MENGUBAH INPUT MENJADI TEKS BIASA SAAT DOWNLOAD AGAR RAPI SEPERTI LAPORAN RESMI
+    // FUNGSI DOWNLOAD JPG LANDSCAPE DENGAN KANVAS 1600PX DAN PEMBAGIAN 4-5 KOLOM KE SAMPING
     function downloadJpgLandscape() {
         const btn = document.getElementById("btnDownloadJpg");
         btn.innerText = "⏳ Memproses Gambar...";
         btn.disabled = true;
 
-        // Ambil elemen tabel dan ubah elemen input di dalamnya menjadi teks biasa sementara agar hasil gambar bersih
-        const inputs = document.querySelectorAll('.name-input');
-        const inputDataBackup = [];
-        inputs.forEach((input, idx) => {
-            inputDataBackup.push(input.value);
-            const parentTd = input.parentElement;
-            parentTd.innerHTML = `<span style="font-size: 1.05rem; font-weight: 500; color: #0f172a; padding: 4px;">${input.value}</span>`;
-        });
+        // Kumpulkan semua data warga yang terisi
+        let validItems = [];
+        if (currentRT === 'SEMUA') {
+            for (let i = 1; i <= 9; i++) {
+                let dbKey = `rt_${i}`;
+                let dataRT = databaseData[dbKey] || {};
+                Object.keys(dataRT).forEach(k => {
+                    let val = dataRT[k];
+                    if (val && val.trim() !== "") {
+                        validItems.push({ name: val, info: `RT. 0${i}`.replace('RT. 010', 'RT. 10') });
+                    }
+                });
+            }
+        } else {
+            const dbKey = getDbKey();
+            let dataRT = databaseData[dbKey] || {};
+            let maxIndex = -1;
+            Object.keys(dataRT).forEach(k => {
+                let idx = parseInt(k.replace('row_', ''));
+                if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
+            });
+            for (let i = 0; i <= maxIndex; i++) {
+                let val = dataRT[`row_${i}`];
+                if (val && val.trim() !== "") {
+                    validItems.push({ name: val, info: "" });
+                }
+            }
+        }
 
-        // Sembunyikan tombol hapus agar tidak ikut tercetak di JPG
-        const deleteButtons = document.querySelectorAll('.btn-delete');
-        deleteButtons.forEach(btnDel => btnDel.style.display = 'none');
+        if (validItems.length === 0) {
+            alert("Belum ada data warga untuk diexport!");
+            btn.innerText = "📥 Download JPG Landscape";
+            btn.disabled = false;
+            return;
+        }
 
-        // Munculkan header judul khusus di dalam area cetak gambar
+        // Sembunyikan tabel normal, tampilkan header dan wrapper multi-kolom
+        document.getElementById("normalTableContainer").style.display = "none";
         const exportHeader = document.getElementById("exportHeaderTitleBlock");
         exportHeader.style.display = "block";
         document.getElementById("exportTitleMain").innerText = `SIMPATISAN CALON LURAH ABRORI - ${currentRT}`;
-        document.getElementById("exportSubTitle").innerText = `Pendataan Pendukung & Simpatisan Resmi (${currentRT})`;
+        document.getElementById("exportSubTitle").innerText = `Pendataan Pendukung & Simpatisan Resmi (${currentRT}) — Total: ${validItems.length} Warga`;
+
+        // Tentukan jumlah kolom secara dinamis (4 kolom jika data di atas 200, atau 4-5 kolom agar tinggi gambar tetap konstan)
+        const numCols = validItems.length > 200 ? 5 : 4;
+        const rowsPerCol = Math.ceil(validItems.length / numCols);
+        
+        let multiWrapper = document.getElementById("multiColumnExportWrapper");
+        multiWrapper.style.display = "grid";
+        multiWrapper.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
+        multiWrapper.style.gap = "12px";
+
+        let colsHtml = "";
+        for (let c = 0; c < numCols; c++) {
+            let startIdx = c * rowsPerCol;
+            let endIdx = Math.min(startIdx + rowsPerCol, validItems.length);
+            
+            if (startIdx < validItems.length) {
+                colsHtml += `<div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 35px; text-align: center;">NO</th>
+                                <th>NAMA WARGA</th>
+                                ${currentRT === 'SEMUA' ? '<th style="width: 45px; text-align: center;">RT</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                
+                for (let r = startIdx; r < endIdx; r++) {
+                    let item = validItems[r];
+                    colsHtml += `<tr>
+                        <td style="text-align: center; font-weight: bold; color: #334155; padding: 5px 3px; border-bottom: 1px solid #cbd5e1; font-size: 0.85rem;">${r + 1}</td>
+                        <td style="font-size: 0.9rem; font-weight: 500; color: #0f172a; padding: 5px 6px; border-bottom: 1px solid #cbd5e1;">${item.name}</td>
+                        ${currentRT === 'SEMUA' ? `<td style="text-align: center; padding: 5px 3px; border-bottom: 1px solid #cbd5e1;"><span class="rt-tag" style="font-size: 0.65rem; padding: 1px 4px;">${item.info}</span></td>` : ''}
+                    </tr>`;
+                }
+                colsHtml += `</tbody></table></div>`;
+            }
+        }
+        multiWrapper.innerHTML = colsHtml;
 
         const exportArea = document.getElementById("exportArea");
 
-        // Konfigurasi html2canvas untuk membuat layout landscape lebar (1400px agar muat banyak kolom/baris)
+        // Proses export dengan kanvas lebar tetap 1600px agar tinggi gambar tetap terkunci ringkas ke samping
         html2canvas(exportArea, {
-            scale: 2, // Kualitas gambar tajam (High Definition)
+            scale: 2,
             useCORS: true,
-            width: 1400, // Lebar landscape yang lapang untuk menampung ratusan data dengan nyaman
-            windowWidth: 1400
+            width: 1600,
+            windowWidth: 1600
         }).then(canvas => {
-            // Unduh file JPG secara otomatis ke HP
             const link = document.createElement('a');
             link.download = `Simpatisan_${currentRT.replace(' ', '_')}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.95);
             link.click();
 
-            // Kembalikan tampilan halaman ke bentuk input semula
+            // Kembalikan tampilan halaman aplikasi ke semula
             exportHeader.style.display = "none";
-            deleteButtons.forEach(btnDel => btnDel.style.display = 'inline-block');
+            multiWrapper.style.display = "none";
+            document.getElementById("normalTableContainer").style.display = "block";
             renderTable();
 
             btn.innerText = "📥 Download JPG Landscape";
@@ -841,7 +916,8 @@
             alert("Gagal mengunduh gambar. Silakan coba lagi.");
             console.error(err);
             exportHeader.style.display = "none";
-            deleteButtons.forEach(btnDel => btnDel.style.display = 'inline-block');
+            multiWrapper.style.display = "none";
+            document.getElementById("normalTableContainer").style.display = "block";
             renderTable();
             btn.innerText = "📥 Download JPG Landscape";
             btn.disabled = false;
