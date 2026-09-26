@@ -380,10 +380,10 @@
 <div class="auth-overlay" id="authOverlay">
     <div class="auth-card">
         <h2>MASUK APLIKASI</h2>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">Masukkan kata sandi untuk melanjutkan.</p>
-        <input type="password" class="auth-input" id="authPassword" placeholder="Kata Sandi" onkeydown="if(event.key==='Enter') cekSandi()">
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">Masukkan PIN RT atau PIN Master untuk melanjutkan.</p>
+        <input type="password" class="auth-input" id="authPassword" placeholder="Masukkan PIN" onkeydown="if(event.key==='Enter') cekSandi()">
         <button class="auth-btn" onclick="cekSandi()">Masuk</button>
-        <div class="auth-error" id="authError">Kata sandi salah!</div>
+        <div class="auth-error" id="authError">PIN salah!</div>
     </div>
 </div>
 
@@ -400,8 +400,8 @@
     </div>
 </div>
 
-<div class="container">
-    <div class="dashboard-layout">
+<div class="container" id="mainContainer" style="display: none;">
+    <div class="dashboard-layout" id="panelLayout">
         <div class="panel-box">
             <div class="panel-title">PILIH RT</div>
             <div class="rt-grid" id="rtGrid">
@@ -420,7 +420,7 @@
     </div>
 
     <div class="card">
-        <div class="action-bar">
+        <div class="action-bar" id="actionBar">
             <!-- Tombol Ringkasan Rekap Saja -->
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
         </div>
@@ -458,12 +458,39 @@
 </div>
 
 <script>
-    // Fungsi Pengecekan Kata Sandi
+    // Daftar PIN untuk masing-masing RT dan PIN Master
+    const pinList = {
+        "101001": "RT 01",
+        "202002": "RT 02",
+        "303003": "RT 03",
+        "404004": "RT 04",
+        "505005": "RT 05",
+        "606006": "RT 06",
+        "707007": "RT 07",
+        "808008": "RT 08",
+        "909009": "RT 09",
+        "aaa12345": "MASTER" // Hak akses penuh ke semua RT
+    };
+
+    // Fungsi Pengecekan Kata Sandi / PIN
     function cekSandi() {
-        const inputVal = document.getElementById("authPassword").value;
+        const inputVal = document.getElementById("authPassword").value.trim();
         const errDiv = document.getElementById("authError");
-        if (inputVal === "aaa12345") {
+        
+        if (pinList[inputVal]) {
+            let akses = pinList[inputVal];
             document.getElementById("authOverlay").style.display = "none";
+            document.getElementById("mainContainer").style.display = "block";
+
+            if (akses === "MASTER") {
+                // Tampilkan akses penuh
+                pilihRT("RT 01");
+            } else {
+                // Kunci hanya untuk RT tertentu saja sesuai PIN yang dimasukkan
+                document.getElementById("panelLayout").style.display = "none"; // Sembunyikan pilihan panel RT lain
+                document.getElementById("actionBar").style.display = "none";   // Sembunyikan tombol rekap keseluruhan bagi petugas RT biasa
+                pilihRT(akses);
+            }
         } else {
             errDiv.style.display = "block";
             document.getElementById("authPassword").value = "";
