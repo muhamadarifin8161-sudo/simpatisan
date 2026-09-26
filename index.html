@@ -7,6 +7,8 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <!-- html2canvas Library untuk Ekspor JPG Landscape -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -180,21 +182,21 @@
             padding: 12px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(13, 92, 56, 0.2);
         }
-        .btn-print {
+        .btn-download-jpg {
             flex: 1;
-            background-color: #1e293b;
+            background-color: #0369a1;
             color: white;
             border: none;
             padding: 12px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(30, 41, 59, 0.2);
+            box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
         }
         table {
             width: 100%;
@@ -254,6 +256,30 @@
             cursor: pointer;
             font-size: 1.2rem;
             padding: 5px;
+        }
+
+        /* Area khusus yang akan diexport jadi JPG landscape agar rapi dan multi-kolom grid ke samping */
+        #exportArea {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .export-header {
+            display: none;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 10px;
+        }
+        .export-header h2 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+            color: #0d5c38;
+            text-transform: uppercase;
+        }
+        .export-header p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #475569;
         }
 
         /* Style untuk Popup Modal */
@@ -384,104 +410,6 @@
             margin-top: 10px;
             display: none;
         }
-
-        /* PENGATURAN CETAK (PRINT) SUPAYA TIDAK PANJANG KE BAWAH DAN RAPI */
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 10mm;
-            }
-            body {
-                background-color: white;
-                color: black;
-                font-size: 11pt;
-            }
-            .auth-overlay, 
-            .dashboard-layout, 
-            .action-bar, 
-            .btn-delete, 
-            .header-photo-container, 
-            .status-badge {
-                display: none !important;
-            }
-            .header {
-                background-color: transparent !important;
-                color: black !important;
-                padding: 0 0 10px 0;
-                border-bottom: 2px solid #333;
-                border-radius: 0;
-            }
-            .header h1 {
-                font-size: 14pt;
-                color: black;
-            }
-            .header p {
-                font-size: 10pt;
-                color: #333;
-            }
-            .container {
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            .card {
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            table {
-                page-break-inside: auto;
-            }
-            th {
-                background-color: #333 !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                padding: 6px !important;
-            }
-            td {
-                padding: 5px 6px !important;
-                border-bottom: 1px solid #999 !important;
-            }
-            tbody tr:nth-child(odd) {
-                background-color: #f2f2f2 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .name-input {
-                border: none !important;
-                background: transparent !important;
-                padding: 0 !important;
-                font-size: 11pt !important;
-                color: black !important;
-            }
-            /* Multi-kolom untuk menghemat kertas dan memotong tinggi cetakan */
-            #tableBody {
-                display: block;
-                column-count: 2;
-                column-gap: 20px;
-                width: 100%;
-            }
-            #tableBody tr {
-                display: block;
-                break-inside: avoid;
-                margin-bottom: 4px;
-            }
-            #tableBody td {
-                display: inline-block;
-                box-sizing: border-box;
-            }
-            #tableBody td:nth-child(1) {
-                width: 15%;
-            }
-            #tableBody td:nth-child(2) {
-                width: 70%;
-            }
-            #tableBody td:nth-child(3) {
-                width: 15%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -533,21 +461,28 @@
         <div class="action-bar" id="actionBar">
             <!-- Tombol Ringkasan Rekap Saja -->
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
-            <!-- Tombol Cetak Dokumen yang aktif di halaman RT manapun -->
-            <button class="btn-print" onclick="window.print()">🖨️ Cetak Halaman Ini</button>
+            <!-- Tombol Download JPG Landscape -->
+            <button class="btn-download-jpg" id="btnDownloadJpg" onclick="downloadJpgLandscape()">📥 Download JPG Landscape</button>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>NO</th>
-                    <th id="tableHeaderTitle">NAMA LENGKAP SIMPATISAN (RT. 01)</th>
-                    <th id="tableHeaderAction" style="width: 55px; text-align: center;"></th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
+        <!-- Area Target yang akan di-generate jadi JPG Landscape -->
+        <div id="exportArea">
+            <div class="export-header" id="exportHeaderTitleBlock">
+                <h2 id="exportTitleMain">Daftar Simpatisan Calon Lurah Abrori</h2>
+                <p id="exportSubTitle">Pendataan Pendukung & Simpatisan</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">NO</th>
+                        <th id="tableHeaderTitle">NAMA LENGKAP SIMPATISAN (RT. 01)</th>
+                        <th id="tableHeaderAction" style="width: 60px; text-align: center;"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -595,19 +530,10 @@
             document.getElementById("mainContainer").style.display = "block";
 
             if (akses === "MASTER") {
-                // Tampilkan akses penuh
                 pilihRT("RT 01");
             } else {
-                // Kunci hanya untuk RT tertentu saja sesuai PIN yang dimasukkan
-                document.getElementById("panelLayout").style.display = "none"; // Sembunyikan pilihan panel RT lain
-                
-                // CATATAN: Tombol rekap disembunyikan untuk petugas RT biasa, tapi tombol cetak halaman tetap bisa diakses 
-                // melalui penyesuaian jika diperlukan, atau dibiarkan tampil mandiri untuk cetak data RT tersebut.
-                // Sesuai permintaan asli: sembunyikan action-bar atau sesuaikan khusus rekap.
-                // Di sini kita tetap sembunyikan action-bar penuh jika petugas biasa, atau kita buatkan tombol cetak khusus di bawah tabel khusus petugas RT jika ingin terpisah.
-                // Agar aman sesuai aturan awal: "Sembunyikan tombol rekap keseluruhan bagi petugas RT biasa"
+                document.getElementById("panelLayout").style.display = "none"; 
                 document.getElementById("actionBar").style.display = "none";   
-                
                 pilihRT(akses);
             }
         } else {
@@ -617,7 +543,6 @@
         }
     }
 
-    // Fokus otomatis ke kotak input sandi saat halaman dibuka
     window.onload = function() {
         const pwdInput = document.getElementById("authPassword");
         if (pwdInput) pwdInput.focus();
@@ -724,7 +649,6 @@
     function renderTable() {
         const tbody = document.getElementById("tableBody");
         
-        // JIKA KLIEN MEMILIH LIHAT SEMUA DATA
         if (currentRT === 'SEMUA') {
             let allSimpatisan = [];
             for (let i = 1; i <= 9; i++) {
@@ -757,7 +681,6 @@
             return;
         }
 
-        // STRUKTUR ASLI PER RT
         const dbKey = getDbKey();
         const dataRT = databaseData[dbKey] || {};
         
@@ -867,7 +790,64 @@
         }
     }
 
-    // Fungsi Pengaturan Modal Popup Ringkasan
+    // FUNGSI UTAMA: MENGUBAH INPUT MENJADI TEKS BIASA SAAT DOWNLOAD AGAR RAPI SEPERTI LAPORAN RESMI
+    function downloadJpgLandscape() {
+        const btn = document.getElementById("btnDownloadJpg");
+        btn.innerText = "⏳ Memproses Gambar...";
+        btn.disabled = true;
+
+        // Ambil elemen tabel dan ubah elemen input di dalamnya menjadi teks biasa sementara agar hasil gambar bersih
+        const inputs = document.querySelectorAll('.name-input');
+        const inputDataBackup = [];
+        inputs.forEach((input, idx) => {
+            inputDataBackup.push(input.value);
+            const parentTd = input.parentElement;
+            parentTd.innerHTML = `<span style="font-size: 1.05rem; font-weight: 500; color: #0f172a; padding: 4px;">${input.value}</span>`;
+        });
+
+        // Sembunyikan tombol hapus agar tidak ikut tercetak di JPG
+        const deleteButtons = document.querySelectorAll('.btn-delete');
+        deleteButtons.forEach(btnDel => btnDel.style.display = 'none');
+
+        // Munculkan header judul khusus di dalam area cetak gambar
+        const exportHeader = document.getElementById("exportHeaderTitleBlock");
+        exportHeader.style.display = "block";
+        document.getElementById("exportTitleMain").innerText = `SIMPATISAN CALON LURAH ABRORI - ${currentRT}`;
+        document.getElementById("exportSubTitle").innerText = `Pendataan Pendukung & Simpatisan Resmi (${currentRT})`;
+
+        const exportArea = document.getElementById("exportArea");
+
+        // Konfigurasi html2canvas untuk membuat layout landscape lebar (1400px agar muat banyak kolom/baris)
+        html2canvas(exportArea, {
+            scale: 2, // Kualitas gambar tajam (High Definition)
+            useCORS: true,
+            width: 1400, // Lebar landscape yang lapang untuk menampung ratusan data dengan nyaman
+            windowWidth: 1400
+        }).then(canvas => {
+            // Unduh file JPG secara otomatis ke HP
+            const link = document.createElement('a');
+            link.download = `Simpatisan_${currentRT.replace(' ', '_')}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+
+            // Kembalikan tampilan halaman ke bentuk input semula
+            exportHeader.style.display = "none";
+            deleteButtons.forEach(btnDel => btnDel.style.display = 'inline-block');
+            renderTable();
+
+            btn.innerText = "📥 Download JPG Landscape";
+            btn.disabled = false;
+        }).catch(err => {
+            alert("Gagal mengunduh gambar. Silakan coba lagi.");
+            console.error(err);
+            exportHeader.style.display = "none";
+            deleteButtons.forEach(btnDel => btnDel.style.display = 'inline-block');
+            renderTable();
+            btn.innerText = "📥 Download JPG Landscape";
+            btn.disabled = false;
+        });
+    }
+
     function bukaModalRingkasan() {
         document.getElementById("modalRingkasan").style.display = "flex";
     }
