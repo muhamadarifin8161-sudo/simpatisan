@@ -7,7 +7,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <!-- html2canvas Library untuk Ekspor JPG Landscape -->
+    <!-- html2canvas Library untuk Ekspor JPG Portrait -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         body {
@@ -258,7 +258,7 @@
             padding: 5px;
         }
 
-        /* Area khusus yang akan diexport jadi JPG landscape */
+        /* Area khusus yang akan diexport jadi JPG Portrait A4 */
         #exportArea {
             background: white;
             padding: 20px;
@@ -282,7 +282,7 @@
             color: #475569;
         }
 
-        /* Container Multi-Kolom Berjajar untuk Ratusan Warga */
+        /* Container Multi-Kolom Khusus Saat Download JPG A4 Portrait */
         #multiColumnExportWrapper {
             display: none;
         }
@@ -466,11 +466,11 @@
         <div class="action-bar" id="actionBar">
             <!-- Tombol Ringkasan Rekap Saja -->
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
-            <!-- Tombol Download JPG Landscape -->
-            <button class="btn-download-jpg" id="btnDownloadJpg" onclick="downloadJpgLandscape()">📥 Download JPG Landscape</button>
+            <!-- Tombol Download JPG Portrait A4 -->
+            <button class="btn-download-jpg" id="btnDownloadJpg" onclick="downloadJpgPortrait()">📥 Download JPG Portrait</button>
         </div>
 
-        <!-- Area Target yang akan di-generate jadi JPG Landscape -->
+        <!-- Area Target yang akan di-generate jadi JPG Portrait A4 -->
         <div id="exportArea">
             <div class="export-header" id="exportHeaderTitleBlock">
                 <h2 id="exportTitleMain">Daftar Simpatisan Calon Lurah Abrori</h2>
@@ -492,7 +492,7 @@
                 </table>
             </div>
 
-            <!-- Tampilan Multi-Kolom Khusus Saat Download JPG -->
+            <!-- Tampilan Multi-Kolom Khusus Saat Download JPG A4 Portrait -->
             <div id="multiColumnExportWrapper"></div>
         </div>
     </div>
@@ -802,10 +802,10 @@
         }
     }
 
-    // FUNGSI DOWNLOAD JPG LANDSCAPE DENGAN KANVAS 1600PX DAN PEMBAGIAN 4-5 KOLOM KE SAMPING
-    function downloadJpgLandscape() {
+    // FUNGSI DOWNLOAD JPG PORTRAIT (UKURAN & TATA LETAK TERKUNCI FORMAT A4 POTRET)
+    function downloadJpgPortrait() {
         const btn = document.getElementById("btnDownloadJpg");
-        btn.innerText = "⏳ Memproses Gambar...";
+        btn.innerText = "⏳ Memproses Format A4...";
         btn.disabled = true;
 
         // Kumpulkan semua data warga yang terisi
@@ -839,26 +839,30 @@
 
         if (validItems.length === 0) {
             alert("Belum ada data warga untuk diexport!");
-            btn.innerText = "📥 Download JPG Landscape";
+            btn.innerText = "📥 Download JPG Portrait";
             btn.disabled = false;
             return;
         }
 
-        // Sembunyikan tabel normal, tampilkan header dan wrapper multi-kolom
+        // Sembunyikan tabel normal, tampilkan header dan format multi-kolom proporsional A4 potret
         document.getElementById("normalTableContainer").style.display = "none";
         const exportHeader = document.getElementById("exportHeaderTitleBlock");
         exportHeader.style.display = "block";
         document.getElementById("exportTitleMain").innerText = `SIMPATISAN CALON LURAH ABRORI - ${currentRT}`;
         document.getElementById("exportSubTitle").innerText = `Pendataan Pendukung & Simpatisan Resmi (${currentRT}) — Total: ${validItems.length} Warga`;
 
-        // Tentukan jumlah kolom secara dinamis (4 kolom jika data di atas 200, atau 4-5 kolom agar tinggi gambar tetap konstan)
-        const numCols = validItems.length > 200 ? 5 : 4;
+        // Menentukan jumlah kolom secara dinamis agar pas dalam batas ukuran A4 potret (maksimal 3 atau 4 kolom)
+        let numCols = 3;
+        if (validItems.length > 75) {
+            numCols = 4;
+        }
+        
         const rowsPerCol = Math.ceil(validItems.length / numCols);
         
         let multiWrapper = document.getElementById("multiColumnExportWrapper");
         multiWrapper.style.display = "grid";
         multiWrapper.style.gridTemplateColumns = `repeat(${numCols}, 1fr)`;
-        multiWrapper.style.gap = "12px";
+        multiWrapper.style.gap = "10px";
 
         let colsHtml = "";
         for (let c = 0; c < numCols; c++) {
@@ -867,12 +871,12 @@
             
             if (startIdx < validItems.length) {
                 colsHtml += `<div>
-                    <table>
+                    <table style="font-size: 0.85rem;">
                         <thead>
                             <tr>
-                                <th style="width: 35px; text-align: center;">NO</th>
-                                <th>NAMA WARGA</th>
-                                ${currentRT === 'SEMUA' ? '<th style="width: 45px; text-align: center;">RT</th>' : ''}
+                                <th style="width: 35px; text-align: center; padding: 8px 4px;">NO</th>
+                                <th style="padding: 8px 6px;">NAMA WARGA</th>
+                                ${currentRT === 'SEMUA' ? '<th style="width: 40px; text-align: center; padding: 8px 2px;">RT</th>' : ''}
                             </tr>
                         </thead>
                         <tbody>`;
@@ -880,9 +884,9 @@
                 for (let r = startIdx; r < endIdx; r++) {
                     let item = validItems[r];
                     colsHtml += `<tr>
-                        <td style="text-align: center; font-weight: bold; color: #334155; padding: 5px 3px; border-bottom: 1px solid #cbd5e1; font-size: 0.85rem;">${r + 1}</td>
-                        <td style="font-size: 0.9rem; font-weight: 500; color: #0f172a; padding: 5px 6px; border-bottom: 1px solid #cbd5e1;">${item.name}</td>
-                        ${currentRT === 'SEMUA' ? `<td style="text-align: center; padding: 5px 3px; border-bottom: 1px solid #cbd5e1;"><span class="rt-tag" style="font-size: 0.65rem; padding: 1px 4px;">${item.info}</span></td>` : ''}
+                        <td style="text-align: center; font-weight: bold; color: #334155; padding: 5px 3px; border-bottom: 1px solid #cbd5e1;">${r + 1}</td>
+                        <td style="font-weight: 500; color: #0f172a; padding: 5px 6px; border-bottom: 1px solid #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${item.name}</td>
+                        ${currentRT === 'SEMUA' ? `<td style="text-align: center; padding: 5px 2px; border-bottom: 1px solid #cbd5e1;"><span class="rt-tag" style="font-size: 0.65rem; padding: 1px 3px;">${item.info}</span></td>` : ''}
                     </tr>`;
                 }
                 colsHtml += `</tbody></table></div>`;
@@ -892,15 +896,15 @@
 
         const exportArea = document.getElementById("exportArea");
 
-        // Proses export dengan kanvas lebar tetap 1600px agar tinggi gambar tetap terkunci ringkas ke samping
+        // Mengunci ukuran kanvas pada lebar 800px (standar rasio A4 potret)
         html2canvas(exportArea, {
             scale: 2,
             useCORS: true,
-            width: 1600,
-            windowWidth: 1600
+            width: 800,
+            windowWidth: 800
         }).then(canvas => {
             const link = document.createElement('a');
-            link.download = `Simpatisan_${currentRT.replace(' ', '_')}.jpg`;
+            link.download = `Simpatisan_${currentRT.replace(' ', '_')}_A4_Portrait.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.95);
             link.click();
 
@@ -910,7 +914,7 @@
             document.getElementById("normalTableContainer").style.display = "block";
             renderTable();
 
-            btn.innerText = "📥 Download JPG Landscape";
+            btn.innerText = "📥 Download JPG Portrait";
             btn.disabled = false;
         }).catch(err => {
             alert("Gagal mengunduh gambar. Silakan coba lagi.");
@@ -919,7 +923,7 @@
             multiWrapper.style.display = "none";
             document.getElementById("normalTableContainer").style.display = "block";
             renderTable();
-            btn.innerText = "📥 Download JPG Landscape";
+            btn.innerText = "📥 Download JPG Portrait";
             btn.disabled = false;
         });
     }
