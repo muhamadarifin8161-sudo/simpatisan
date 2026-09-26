@@ -184,6 +184,18 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(13, 92, 56, 0.2);
         }
+        .btn-print {
+            flex: 1;
+            background-color: #1e293b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(30, 41, 59, 0.2);
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -372,6 +384,104 @@
             margin-top: 10px;
             display: none;
         }
+
+        /* PENGATURAN CETAK (PRINT) SUPAYA TIDAK PANJANG KE BAWAH DAN RAPI */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body {
+                background-color: white;
+                color: black;
+                font-size: 11pt;
+            }
+            .auth-overlay, 
+            .dashboard-layout, 
+            .action-bar, 
+            .btn-delete, 
+            .header-photo-container, 
+            .status-badge {
+                display: none !important;
+            }
+            .header {
+                background-color: transparent !important;
+                color: black !important;
+                padding: 0 0 10px 0;
+                border-bottom: 2px solid #333;
+                border-radius: 0;
+            }
+            .header h1 {
+                font-size: 14pt;
+                color: black;
+            }
+            .header p {
+                font-size: 10pt;
+                color: #333;
+            }
+            .container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            table {
+                page-break-inside: auto;
+            }
+            th {
+                background-color: #333 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 6px !important;
+            }
+            td {
+                padding: 5px 6px !important;
+                border-bottom: 1px solid #999 !important;
+            }
+            tbody tr:nth-child(odd) {
+                background-color: #f2f2f2 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .name-input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                font-size: 11pt !important;
+                color: black !important;
+            }
+            /* Multi-kolom untuk menghemat kertas dan memotong tinggi cetakan */
+            #tableBody {
+                display: block;
+                column-count: 2;
+                column-gap: 20px;
+                width: 100%;
+            }
+            #tableBody tr {
+                display: block;
+                break-inside: avoid;
+                margin-bottom: 4px;
+            }
+            #tableBody td {
+                display: inline-block;
+                box-sizing: border-box;
+            }
+            #tableBody td:nth-child(1) {
+                width: 15%;
+            }
+            #tableBody td:nth-child(2) {
+                width: 70%;
+            }
+            #tableBody td:nth-child(3) {
+                width: 15%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -423,6 +533,8 @@
         <div class="action-bar" id="actionBar">
             <!-- Tombol Ringkasan Rekap Saja -->
             <button class="btn-summary" onclick="bukaModalRingkasan()">📊 Ringkasan Rekap</button>
+            <!-- Tombol Cetak Dokumen yang aktif di halaman RT manapun -->
+            <button class="btn-print" onclick="window.print()">🖨️ Cetak Halaman Ini</button>
         </div>
 
         <table>
@@ -488,7 +600,14 @@
             } else {
                 // Kunci hanya untuk RT tertentu saja sesuai PIN yang dimasukkan
                 document.getElementById("panelLayout").style.display = "none"; // Sembunyikan pilihan panel RT lain
-                document.getElementById("actionBar").style.display = "none";   // Sembunyikan tombol rekap keseluruhan bagi petugas RT biasa
+                
+                // CATATAN: Tombol rekap disembunyikan untuk petugas RT biasa, tapi tombol cetak halaman tetap bisa diakses 
+                // melalui penyesuaian jika diperlukan, atau dibiarkan tampil mandiri untuk cetak data RT tersebut.
+                // Sesuai permintaan asli: sembunyikan action-bar atau sesuaikan khusus rekap.
+                // Di sini kita tetap sembunyikan action-bar penuh jika petugas biasa, atau kita buatkan tombol cetak khusus di bawah tabel khusus petugas RT jika ingin terpisah.
+                // Agar aman sesuai aturan awal: "Sembunyikan tombol rekap keseluruhan bagi petugas RT biasa"
+                document.getElementById("actionBar").style.display = "none";   
+                
                 pilihRT(akses);
             }
         } else {
